@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111410">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rutina">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Mi Rutina</title>
+<style>
+:root{
+  --bg:#F4F5F1; --surface:#FFFFFF; --surface-2:#ECEEE6; --inset:#F4F5EF;
+  --ink:#161812; --muted:#6C7064; --line:rgba(20,22,16,.10);
+  --accent:#9BDA1E; --accent-strong:#445A0F; --on-accent:#16200A; --accent-soft:#EEF7D6;
+  --ok:#1F9D57; --ok-soft:#E6F6EC; --danger:#D6452F; --danger-soft:#FBEAE6; --warn:#B9770B;
+  --header:#111410; --on-header:#F3F5EE;
+  --r:14px; --r-lg:20px; --r-xl:26px;
+  --sh-sm:0 1px 2px rgba(20,22,16,.05);
+  --sh:0 6px 22px rgba(20,22,16,.09);
+  --sh-lg:0 18px 44px rgba(20,22,16,.16);
+  --font-sans:'Hanken Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-display:'Bricolage Grotesque',var(--font-sans);
+}
+@media (prefers-color-scheme:dark){
+:root{
+  --bg:#0B0D0A; --surface:#161A13; --surface-2:#1E2319; --inset:#11140E;
+  --ink:#ECEFE6; --muted:#9BA08F; --line:rgba(255,255,255,.09);
+  --accent:#C9F75A; --accent-strong:#C9F75A; --on-accent:#12190A; --accent-soft:rgba(201,247,90,.14);
+  --ok:#46D788; --ok-soft:rgba(70,215,136,.15); --danger:#FB7A5F; --danger-soft:rgba(251,122,95,.15); --warn:#E3A74A;
+  --header:#0E110C; --on-header:#ECEFE6;
+  --sh-sm:0 1px 2px rgba(0,0,0,.4); --sh:0 8px 26px rgba(0,0,0,.45); --sh-lg:0 20px 48px rgba(0,0,0,.6);
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);line-height:1.45;
+  -webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.wrap{max-width:720px;margin:0 auto;padding:0 15px calc(96px + env(safe-area-inset-bottom))}
+::selection{background:var(--accent);color:var(--on-accent)}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:20;background:var(--header);color:var(--on-header);
+  padding:calc(16px + env(safe-area-inset-top)) 18px 16px;border-radius:0 0 var(--r-xl) var(--r-xl);
+  box-shadow:var(--sh)}
+.brand{display:flex;align-items:center;gap:13px;max-width:720px;margin:0 auto}
+.logo{flex:0 0 auto;width:42px;height:42px;border-radius:13px;background:var(--accent);color:var(--on-accent);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(155,218,30,.4)}
+.logo svg{width:24px;height:24px}
+header h1{margin:0;font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em}
+header p{margin:1px 0 0;font-size:12.5px;color:#A8AE9D;font-weight:500;letter-spacing:.01em}
+
+/* BOTTOM NAV */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:2px;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:saturate(1.4) blur(14px);
+  -webkit-backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--line);
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.06)}
+nav button{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;
+  color:var(--muted);padding:5px 2px;border-radius:13px;cursor:pointer;font-family:var(--font-sans)}
+nav button .ic{display:flex;align-items:center;justify-content:center;width:46px;height:30px;border-radius:11px;transition:.2s}
+nav button .ic svg{width:23px;height:23px}
+nav button .lb{font-size:10.5px;font-weight:600;letter-spacing:.01em}
+nav button.active{color:var(--accent-strong)}
+nav button.active .ic{background:var(--accent-soft)}
+nav button:active .ic{transform:scale(.9)}
+
+/* VIEWS + cards */
+.view{display:none}
+.view.active{display:block;animation:fadeUp .3s cubic-bezier(.2,.7,.3,1)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:15px;margin:0 0 13px;box-shadow:var(--sh-sm)}
+.view.active .card{animation:fadeUp .34s cubic-bezier(.2,.7,.3,1) both}
+.view.active .card:nth-child(2){animation-delay:.04s}
+.view.active .card:nth-child(3){animation-delay:.08s}
+.view.active .card:nth-child(4){animation-delay:.12s}
+.view.active .card:nth-child(5){animation-delay:.16s}
+.view.active .card:nth-child(6){animation-delay:.2s}
+.view.active .card:nth-child(7){animation-delay:.24s}
+
+/* exercise card */
+.exhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.exname{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:-.01em}
+.target{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;background:var(--surface-2);
+  padding:4px 9px;border-radius:999px}
+.note{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+.last{display:inline-block;font-size:12px;margin-top:9px;color:var(--accent-strong);background:var(--accent-soft);
+  padding:5px 11px;border-radius:999px;font-weight:600}
+.row{display:flex;gap:9px;margin-top:11px;flex-wrap:wrap}
+.fld{flex:1 1 80px;min-width:70px}
+.fld label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;letter-spacing:.01em}
+input,select{width:100%;font-size:16px;font-family:var(--font-sans);padding:11px 12px;border:1px solid var(--line);
+  border-radius:var(--r);background:var(--inset);color:var(--ink);transition:border-color .15s,box-shadow .15s,background .15s}
+input:focus,select:focus{outline:none;border-color:var(--accent);background:var(--surface);
+  box-shadow:0 0 0 4px var(--accent-soft)}
+.i-w,.i-r,.i-rpe{text-align:center;font-weight:700;font-family:var(--font-display);font-size:18px;padding:11px 6px}
+.hint{margin-top:9px;font-size:12.5px;font-weight:700;display:none;color:var(--ok)}
+.hint.up{display:inline-flex;align-items:center;gap:6px;background:var(--ok-soft);padding:6px 11px;border-radius:999px;animation:fadeUp .22s ease}
+
+/* day selector */
+.daybar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px}
+.daybar button{flex:1 1 30%;min-width:120px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:11px 10px;border-radius:var(--r);font-weight:700;font-size:14px;cursor:pointer;text-align:left;
+  font-family:var(--font-display);letter-spacing:-.01em;transition:.16s}
+.daybar button small{display:block;font-weight:500;font-size:10.5px;color:var(--muted);font-family:var(--font-sans);margin-top:2px}
+.daybar button.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent);animation:pop .22s ease;box-shadow:0 6px 18px rgba(155,218,30,.28)}
+.daybar button.sel small{color:var(--on-accent);opacity:.72}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;background:var(--accent);
+  color:var(--on-accent);padding:14px 18px;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;
+  width:100%;font-family:var(--font-display);letter-spacing:-.01em;box-shadow:0 6px 18px rgba(155,218,30,.26);transition:transform .12s,filter .15s}
+.btn:active{transform:scale(.97)}
+.btn:hover{filter:brightness(1.04)}
+.btn.sec{background:var(--surface);color:var(--accent-strong);border:1.5px solid var(--accent);box-shadow:none}
+.btn.ghost{background:var(--surface-2);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.danger{background:var(--danger-soft);color:var(--danger);border:1px solid var(--danger);box-shadow:none}
+.btn.sm{padding:10px 14px;font-size:13.5px;width:auto;box-shadow:none}
+
+.toolbar{display:flex;gap:10px;align-items:flex-end;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.dateinp{max-width:180px}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);
+  background:var(--ink);color:var(--bg);padding:13px 20px;border-radius:14px;font-size:14px;font-weight:600;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:70;box-shadow:var(--sh-lg);max-width:90%}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* metric cards */
+.cards4{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;margin-bottom:15px}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 15px;box-shadow:var(--sh-sm)}
+.metric .k{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.metric .v{font-family:var(--font-display);font-size:27px;font-weight:800;margin-top:4px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.metric .s{font-size:11.5px;color:var(--muted);margin-top:1px}
+
+h2.sec{font-family:var(--font-display);font-size:15px;margin:22px 2px 9px;font-weight:700;letter-spacing:-.01em}
+
+/* weekly ring banner */
+.wk{display:flex;align-items:center;gap:16px}
+.wk-ring{flex:0 0 auto}
+.wk-ring svg{width:72px;height:72px;display:block}
+.wk-rt{font-family:var(--font-display);font-weight:800;font-size:22px;fill:var(--ink);font-variant-numeric:tabular-nums}
+.wk-info{flex:1;min-width:0}
+.wk-k{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.wk-v{font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-top:1px}
+.wk-v span{font-size:14px;color:var(--muted);font-weight:600}
+.wk-s{font-size:12.5px;margin-top:4px;color:var(--muted);font-weight:600}
+.wk-s .ok{color:var(--ok)}
+.wk-s .flame{color:var(--accent-strong)}
+
+/* charts */
+svg .axis{stroke:var(--line);stroke-width:1}
+svg .lbl{fill:var(--muted);font-size:10px;font-family:var(--font-sans)}
+svg .bar{fill:var(--accent)}
+
+/* edit rows */
+.editrow{display:flex;gap:6px;align-items:center;margin-bottom:8px}
+.editrow input{font-size:14px;padding:9px 9px;background:var(--inset)}
+.editrow .nm{flex:3 1 120px}.editrow .st{flex:0 0 46px;text-align:center}.editrow .rp{flex:0 0 62px;text-align:center}.editrow .pe{flex:0 0 50px;text-align:center}
+.iconbtn{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:11px;
+  width:36px;height:36px;font-size:15px;cursor:pointer;flex:0 0 auto;line-height:1;transition:transform .12s,color .15s}
+.iconbtn:active{transform:scale(.92)}
+
+.sesline{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sesline:last-child{border-bottom:none}
+.tag{display:inline-block;background:var(--accent-soft);color:var(--accent-strong);font-size:11px;
+  padding:3px 10px;border-radius:999px;font-weight:700}
+.muted{color:var(--muted);font-size:13px}
+.info{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);color:var(--accent-strong);
+  border-radius:var(--r);padding:12px 14px;font-size:13px;margin-bottom:13px;font-weight:500;line-height:1.45}
+a.linkbtn{color:var(--accent-strong);text-decoration:none;font-weight:700}
+.foot{font-size:11px;color:var(--muted);text-align:center;margin-top:20px}
+
+/* FAB + timer sheet */
+.fab{position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom));z-index:50;width:58px;height:58px;
+  border-radius:19px;background:var(--accent);color:var(--on-accent);border:none;
+  box-shadow:0 10px 26px rgba(155,218,30,.42);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.fab svg{width:27px;height:27px}
+.fab:active{transform:scale(.9)}
+.backdrop{position:fixed;inset:0;background:rgba(10,12,8,.5);z-index:60;opacity:0;pointer-events:none;transition:.22s;backdrop-filter:blur(2px)}
+.backdrop.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:65;background:var(--surface);
+  border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:var(--sh-lg);padding:14px 20px calc(30px + env(safe-area-inset-bottom));
+  transform:translateY(115%);transition:transform .3s cubic-bezier(.2,.8,.2,1);max-width:720px;margin:0 auto;border:1px solid var(--line);border-bottom:none}
+.sheet.open{transform:translateY(0)}
+.grab{width:44px;height:5px;background:var(--line);border-radius:999px;margin:0 auto 16px}
+.tmode{display:flex;gap:8px;margin-bottom:12px;background:var(--surface-2);padding:5px;border-radius:14px}
+.tmode button{flex:1;border:none;background:none;color:var(--muted);padding:10px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;font-family:var(--font-sans);transition:.18s}
+.tmode button.on{background:var(--surface);color:var(--ink);box-shadow:var(--sh-sm)}
+.tdisplay{font-family:var(--font-display);font-size:64px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;margin:6px 0 10px}
+.tdisplay.warn{color:var(--danger)}
+.tpresets{display:flex;gap:8px;justify-content:center;margin-bottom:13px;flex-wrap:wrap}
+.tpresets button{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 15px;border-radius:999px;
+  cursor:pointer;font-weight:700;font-family:var(--font-display);transition:.15s}
+.tpresets button.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tctrl{display:flex;gap:9px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.93)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* v3 additions: progressive overload badge, 1RM badge, per-set breakdown, muscle volume bars, history search & editor */
+.overload-box { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; align-items:center; }
+.badge-prog { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; color:var(--ok); background:var(--ok-soft); padding:4px 10px; border-radius:999px; }
+.badge-1rm { display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:var(--ink); background:var(--surface-2); padding:4px 10px; border-radius:999px; font-variant-numeric:tabular-nums; }
+.sets-toggle { margin-top:9px; display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; color:var(--accent-strong); background:none; border:1px dashed var(--line); padding:6px 11px; border-radius:10px; cursor:pointer; font-family:var(--font-sans); }
+.sets-drawer { display:none; margin-top:9px; padding:10px; background:var(--surface-2); border-radius:var(--r); }
+.sets-drawer.open { display:block; animation:fadeUp .2s ease; }
+.set-line { display:flex; align-items:center; gap:7px; margin-bottom:7px; }
+.set-line:last-child { margin-bottom:0; }
+.set-lbl { font-size:11.5px; font-weight:700; color:var(--muted); width:54px; flex:0 0 auto; }
+.set-line input { padding:8px 8px; font-size:14.5px; text-align:center; font-weight:700; }
+.note-inp { margin-top:8px; font-size:13px; padding:8px 11px; }
+.mvol-row { display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:13px; }
+.mvol-row:last-child { margin-bottom:0; }
+.mvol-name { width:92px; font-weight:700; flex:0 0 auto; }
+.mvol-track { flex:1; height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden; }
+.mvol-fill { height:100%; background:var(--accent); border-radius:999px; transition:width .3s ease; }
+.mvol-val { width:72px; text-align:right; font-weight:700; font-size:12px; font-variant-numeric:tabular-nums; color:var(--muted); }
+.hist-modal { position:fixed; inset:0; z-index:80; background:rgba(10,12,8,.6); display:none; align-items:flex-end; justify-content:center; backdrop-filter:blur(3px); }
+.hist-modal.open { display:flex; }
+.hist-box { background:var(--surface); width:100%; max-width:720px; max-height:88vh; border-radius:var(--r-xl) var(--r-xl) 0 0; padding:18px 18px calc(26px + env(safe-area-inset-bottom)); overflow-y:auto; box-shadow:var(--sh-lg); border:1px solid var(--line); }
+
+
+.mode-bar { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; align-items:center; }
+.mode-chip { border:1px solid var(--line); background:var(--surface-2); color:var(--muted); padding:5px 10px; border-radius:999px; font-size:11.5px; font-weight:700; cursor:pointer; font-family:var(--font-sans); transition:.15s; }
+.mode-chip.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+.mode-chip.on[data-m="Dropset"] { background:var(--warn); color:#fff; border-color:var(--warn); }
+.mode-chip.on[data-m="Negativas"] { background:var(--danger); color:#fff; border-color:var(--danger); }
+.mode-chip.on[data-m="Rest-Pause"] { background:var(--accent-strong); color:#fff; border-color:var(--accent-strong); }
+.var-sel { width:auto; font-size:12px; font-weight:700; padding:4px 9px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); color:var(--ink); cursor:pointer; }
+.drop-inputs { display:none; margin-top:8px; padding:9px 10px; background:color-mix(in srgb,var(--warn) 12%,var(--surface-2)); border:1px dashed var(--warn); border-radius:var(--r); }
+.drop-inputs.open { display:block; animation:fadeUp .2s ease; }
+
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="1.5" y="9" width="3" height="6" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1.2"/><rect x="5" y="10" width="2.6" height="4" rx="1"/><rect x="16.4" y="10" width="2.6" height="4" rx="1"/><rect x="7.3" y="11" width="9.4" height="2" rx="1"/></svg></span>
+    <div>
+      <h1>Mi Rutina</h1>
+      <p id="subt">Torso / Pierna · 4 días</p>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+  <nav>
+    <button data-v="entrenar" class="active"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="1.5" y="9" width="3" height="6" rx="1.2"/><rect x="19.5" y="9" width="3" height="6" rx="1.2"/><rect x="5" y="10" width="2.6" height="4" rx="1"/><rect x="16.4" y="10" width="2.6" height="4" rx="1"/><rect x="7.3" y="11" width="9.4" height="2" rx="1"/></svg></span><span class="lb">Entrenar</span></button>
+    <button data-v="metricas"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="8" rx="1.4"/><rect x="10" y="6.5" width="4" height="13.5" rx="1.4"/><rect x="17" y="3.5" width="4" height="16.5" rx="1.4"/></svg></span><span class="lb">Métricas</span></button>
+    <button data-v="rutina"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.5" y="5" width="3.2" height="3.2" rx="1"/><rect x="9" y="5.6" width="11.5" height="2" rx="1"/><rect x="3.5" y="10.4" width="3.2" height="3.2" rx="1"/><rect x="9" y="11" width="11.5" height="2" rx="1"/><rect x="3.5" y="15.8" width="3.2" height="3.2" rx="1"/><rect x="9" y="16.4" width="11.5" height="2" rx="1"/></svg></span><span class="lb">Rutina</span></button>
+    <button data-v="datos"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v10"/><path d="m7.5 9.5 4.5 4.5 4.5-4.5"/><path d="M5 19.5h14"/></svg></span><span class="lb">Datos</span></button>
+    <button data-v="mas"><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="6" r="1.9"/><circle cx="12" cy="6" r="1.9"/><circle cx="18" cy="6" r="1.9"/><circle cx="6" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18" cy="12" r="1.9"/><circle cx="6" cy="18" r="1.9"/><circle cx="12" cy="18" r="1.9"/><circle cx="18" cy="18" r="1.9"/></svg></span><span class="lb">Más</span></button>
+  </nav>
+
+  <section id="entrenar" class="view active">
+    <div class="daybar" id="daybar"></div>
+    <div class="toolbar">
+      <div class="fld dateinp"><label>Fecha de la sesión</label><input type="date" id="sesdate"></div>
+      <button class="btn sm sec" id="btnHist" style="align-self:flex-end">Ver historial</button>
+    </div>
+    <div id="exlist"></div>
+    <button class="btn" id="btnSave">Guardar sesión</button>
+    <div id="recent"></div>
+  </section>
+
+  <section id="metricas" class="view">
+    <div class="cards4" id="cards4"></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin:22px 2px 9px">
+      <h2 class="sec" style="margin:0">Volumen por grupo muscular</h2>
+      <select id="mvolWeekSel" style="width:auto;padding:5px 10px;font-size:12.5px;font-weight:700"></select>
+    </div>
+    <div class="card" id="mvolCard"></div>
+    <h2 class="sec">Constancia — sesiones por semana</h2>
+    <div class="card" id="chAdh"></div>
+    <h2 class="sec">Progreso por ejercicio (peso y 1RM)</h2>
+    <div class="card">
+      <select id="exsel" style="margin-bottom:10px"></select>
+      <div id="chE1rm"></div>
+      <div id="e1rmTxt" class="muted" style="margin-top:8px"></div>
+    </div>
+    <h2 class="sec">Historial completo y buscador de sesiones</h2>
+    <div class="card">
+      <div class="row" style="margin-top:0;margin-bottom:10px">
+        <div class="fld" style="flex:2 1 160px"><label>Buscar ejercicio, día, nota o fecha</label><input type="search" id="histSearch" placeholder="Ej: Press Banca, 2026-09, hombro..."></div>
+        <div class="fld" style="flex:1 1 110px"><label>Filtrar día</label><select id="histDayFilter"><option value="">Todos</option></select></div>
+      </div>
+      <div id="fullHistList"></div>
+    </div>
+  </section>
+
+  <section id="rutina" class="view">
+    <div class="info">Edita libremente: cambia nombres, series, reps objetivo o RPE, añade o borra ejercicios. Se guarda solo.</div>
+    <div id="editdays"></div>
+  </section>
+
+  <section id="datos" class="view">
+    <div class="info">Tus datos viven en este navegador. Para no perderlos y tenerlos en tu Drive, exporta de vez en cuando y sube el archivo a Google Drive.</div>
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Sincronización bidireccional (Google Sheets)</h2>
+      <p class="muted">Conecta tu hoja de Google Drive. Sube entrenamientos automáticamente al guardar y restaura todo tu historial desde la nube cuando cambies de móvil.</p>
+      <div class="fld" style="margin-top:6px;margin-bottom:10px">
+        <label>URL de Google Apps Script (Web App)</label>
+        <input type="url" id="gsUrl" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div class="row">
+        <button class="btn sec" id="btnTestSync" style="flex:1 1 180px">☁️ Guardar URL y subir última</button>
+        <button class="btn ghost" id="btnPullCloud" style="flex:1 1 180px">📥 Descargar desde Google Sheets</button>
+      </div>
+      <div id="syncStatus" class="muted" style="margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Exportar</h2>
+      <p class="muted">El CSV abre directamente en Excel con las mismas columnas que tu hoja de siempre.</p>
+      <div class="row">
+        <button class="btn sec" id="expCsv">Exportar a Excel (CSV)</button>
+        <button class="btn ghost" id="expJson">Copia de seguridad (JSON)</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Restaurar / mover de dispositivo</h2>
+      <p class="muted">Importa un archivo JSON exportado antes (reemplaza los datos actuales).</p>
+      <input type="file" id="impFile" accept="application/json,.json">
+    </div>
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Zona peligrosa</h2>
+      <button class="btn danger" id="btnReset">Vaciar todos los datos</button>
+    </div>
+    <div class="foot">Hecho a partir de tu Excel · v1</div>
+  </section>
+</div>
+<button class="fab" id="fab" aria-label="Temporizador" title="Temporizador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V10"/><path d="M9.5 2.5h5"/><path d="m19 7 1.3-1.3"/></svg></button>
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Temporizador">
+  <div class="grab"></div>
+  <div class="tmode">
+    <button id="mRest" class="on">Descanso</button>
+    <button id="mUp">Cronómetro (plancha)</button>
+  </div>
+  <div class="tdisplay" id="tdisp">2:00</div>
+  <div class="tpresets" id="tpresets">
+    <button data-s="60">1:00</button><button data-s="90">1:30</button>
+    <button data-s="120" class="on">2:00</button><button data-s="180">3:00</button>
+  </div>
+  <div class="tctrl">
+    <button class="btn" id="tStart">Iniciar</button>
+    <button class="btn ghost" id="tReset">Reiniciar</button>
+  </div>
+  <button class="btn sec" id="tSavePlank" style="margin-top:10px;width:100%;display:none">Guardar tiempo en Plancha</button>
+</div>
+<div class="hist-modal" id="editModal" role="dialog" aria-label="Editar sesión">
+  <div class="hist-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 class="sec" style="margin:0;font-size:17px" id="editModalTitle">Editar sesión</h2>
+      <button class="iconbtn" id="closeEditModal">✕</button>
+    </div>
+    <div class="row" style="margin-top:0;margin-bottom:10px">
+      <div class="fld"><label>Fecha</label><input type="date" id="editSesDate"></div>
+      <div class="fld"><label>Día de rutina</label><input type="text" id="editSesDay"></div>
+    </div>
+    <div id="editSesEntries"></div>
+    <button class="btn ghost sm" id="editAddEntry" style="margin-top:8px;width:100%">+ Añadir ejercicio a esta sesión</button>
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="saveEditModal" style="flex:2">Guardar cambios</button>
+      <button class="btn danger" id="delEditModal" style="flex:1">Borrar sesión</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED = {"routine": [{"name": "Torso A", "focus": "Empuje + espalda", "exercises": [{"name": "Press Banca Plano", "sets": 4, "reps": "3-5", "rpe": "8-9", "note": "Tu meseta: progresión doble para romperla. Lumbar neutra, escápulas retraídas."}, {"name": "Remo Tumbado en T", "sets": 4, "reps": "8-10", "rpe": "9", "note": "Pecho apoyado: sin tirón lumbar."}, {"name": "Press Militar (barra)", "sets": 3, "reps": "6-8", "rpe": "8-9", "note": ""}, {"name": "Dominadas Lastradas", "sets": 3, "reps": "6-8", "rpe": "9", "note": "Sube lastre con progresión doble."}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "reps": "10-12", "rpe": "9", "note": "Tu mejor progresador (+49%)."}, {"name": "Curl con Barra de Pie", "sets": 3, "reps": "8-10", "rpe": "9", "note": ""}]}, {"name": "Pierna A", "focus": "Único día de pierna", "exercises": [{"name": "Sentadilla", "sets": 3, "reps": "3-5", "rpe": "8", "note": "Lumbar: cinturón, core firme, sin grindear. Cambia a Hack si molesta."}, {"name": "Prensa Inclinada", "sets": 3, "reps": "10-12", "rpe": "9", "note": ""}, {"name": "Curl Femoral Tumbado", "sets": 4, "reps": "8-12", "rpe": "9", "note": "Isquios sin carga axial."}, {"name": "Extensiones de Cuádriceps", "sets": 3, "reps": "15-20", "rpe": "9-10", "note": "Mantén las negativas que ya hacías."}, {"name": "Hiperextensiones (Banco Romano)", "sets": 3, "reps": "12-15", "rpe": "8", "note": "Salud lumbar, controladas."}]}, {"name": "Torso B", "focus": "Variación + tirón", "exercises": [{"name": "Press Inclinado Mancuernas", "sets": 4, "reps": "8-10", "rpe": "9", "note": "Progresador tuyo (+14%)."}, {"name": "Jalón al Pecho", "sets": 4, "reps": "10-12", "rpe": "9", "note": ""}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "reps": "12-15", "rpe": "9", "note": "Tronco fijo, sin tirones."}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "reps": "12-15", "rpe": "9", "note": ""}, {"name": "Curl Martillo (superserie)", "sets": 3, "reps": "10-12", "rpe": "9", "note": "Anota el peso por mancuerna."}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "reps": "12-15", "rpe": "9", "note": ""}]}, {"name": "Detalles", "focus": "Hombro · brazo · core", "exercises": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "reps": "15-20", "rpe": "9", "note": ""}, {"name": "Abdominales en Banco", "sets": 4, "reps": "8-10", "rpe": "9", "note": "Con peso."}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "reps": "Al fallo", "rpe": "10", "note": ""}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "reps": "1 min", "rpe": "8", "note": ""}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "reps": "12-15", "rpe": "8", "note": "Anota el peso por lado."}]}], "history": [{"date": "2026-01-19", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 5, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 9, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra/Manc)", "sets": 3, "repsTarget": "6-8", "weight": 32.0, "repsDone": 7, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo con Barra (Pendlay)", "sets": 3, "repsTarget": "8-10", "weight": 70.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-01-20", "day": "Pierna A", "entries": [{"name": "Sentadilla Trasera", "sets": 3, "repsTarget": "3-5", "weight": 130.0, "repsDone": 2, "rpe": "8-9 (Fuerza pura)"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 12, "rpe": "9 (Bombeo)"}, {"name": "Hiperextensiones (Banco Romano)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}]}, {"date": "2026-01-22", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 3, "repsTarget": "8-10", "weight": 35.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Jalón al Pecho", "sets": 3, "repsTarget": "10-12", "weight": 100.0, "repsDone": 10, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-01-23", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 10.0, "repsDone": 17, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 10, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-01-23", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 7, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": 60.0, "repsDone": 10, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": 50.0, "repsDone": 10, "rpe": "10 (Excéntrica lenta)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-02-02", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 4, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 20.0, "repsDone": 6, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra/Manc)", "sets": 3, "repsTarget": "6-8", "weight": 32.0, "repsDone": 7, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo con Barra (Pendlay)", "sets": 3, "repsTarget": "8-10", "weight": 70.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-02-03", "day": "Pierna A", "entries": [{"name": "Sentadilla Trasera", "sets": 3, "repsTarget": "3-5", "weight": 130.0, "repsDone": 3, "rpe": "8-9 (Fuerza pura)"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 50.0, "repsDone": 10, "rpe": "9-10 (Pesado)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 12, "rpe": "9 (Bombeo)"}, {"name": "Hiperextensiones (Banco Romano)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}]}, {"date": "2026-02-04", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 3, "repsTarget": "8-10", "weight": 37.5, "repsDone": 8, "rpe": "9 (Pecho alto)"}, {"name": "Jalón al Pecho", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-02-05", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 12.5, "repsDone": 12, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 8, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-02-05", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-02-09", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 5, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 20.0, "repsDone": 6, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra/Manc)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 6, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo con Barra (Pendlay)", "sets": 3, "repsTarget": "8-10", "weight": 80.0, "repsDone": 6, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Controlado)"}]}, {"date": "2026-02-10", "day": "Pierna A", "entries": [{"name": "Sentadilla Trasera", "sets": 3, "repsTarget": "3-5", "weight": 130.0, "repsDone": 4, "rpe": "8-9 (Fuerza pura)"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 8, "rpe": "9-10 (Pesado)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Hiperextensiones (Banco Romano)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}]}, {"date": "2026-02-12", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-02-12", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 8, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": 60.0, "repsDone": 12, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": 62.5, "repsDone": 13, "rpe": "10 (Excéntrica lenta)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 80.0, "repsDone": 16, "rpe": "10 (Al fallo)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": 47.5, "repsDone": 16, "rpe": "9 (Opcional)"}]}, {"date": "2026-02-12", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 3, "repsTarget": "8-10", "weight": 37.5, "repsDone": 9, "rpe": "9 (Pecho alto)"}, {"name": "Jalón al Pecho", "sets": 3, "repsTarget": "10-12", "weight": 100.0, "repsDone": 10, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 14, "rpe": "9 (Apretar espalda)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-02-16", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 4, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 20.0, "repsDone": 6, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra/Manc)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 6, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 30.0, "repsDone": 10, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-02-17", "day": "Pierna A", "entries": [{"name": "Sentadilla Trasera", "sets": 3, "repsTarget": "3-5", "weight": null, "repsDone": null, "rpe": "8-9 (Fuerza pura)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 35.0, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 220.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}]}, {"date": "2026-02-19", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": 15, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 14, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": 1.14, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-02-19", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-02-19", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 70.0, "repsDone": 10, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-02-23", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 20.0, "repsDone": 6, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra/Manc)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 6, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 30.0, "repsDone": 10, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-02-24", "day": "Pierna A", "entries": [{"name": "Sentadilla Trasera", "sets": 3, "repsTarget": "3-5", "weight": null, "repsDone": null, "rpe": "8-9 (Fuerza pura)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 35.0, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 220.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}]}, {"date": "2026-02-25", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 77.5, "repsDone": 10, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 10, "rpe": "10 (Quemazón)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 20.0, "repsDone": 8, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 8, "rpe": "9 (Bombeo)"}]}, {"date": "2026-02-26", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 14, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": 20, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 14, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": 1.14, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-02-26", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-03-09", "day": "Pierna A", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}]}, {"date": "2026-03-09", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 8, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-03-10", "day": "Pierna A", "entries": [{"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-03-12", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-03-13", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-03-13", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-03-16", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 8, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-03-17", "day": "Pierna A", "entries": [{"name": "Sentadilla guiada", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pura)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 8, "rpe": "9 (Bombeo)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 40.0, "repsDone": 8, "rpe": "8 (Salud lumbar)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 97.5, "repsDone": 10, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 35.0, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-03-19", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 90.0, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 10, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-03-20", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps + Tríceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-03-20", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-03-23", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 110.0, "repsDone": 2, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 8, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}, {"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 5, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 8, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-03-24", "day": "Pierna A", "entries": [{"name": "Sentadilla Guiada", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pura)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 40.0, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Sentadilla Guiada", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pura)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 40.0, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-03-26", "day": "Torso B", "entries": [{"name": "Press Inclinado barra", "sets": 4, "repsTarget": "8-10", "weight": 80.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas maquina hoy", "sets": 3, "repsTarget": "12-15", "weight": 90.0, "repsDone": 8, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 8, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado barra", "sets": 4, "repsTarget": "8-10", "weight": 80.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 8, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-03-27", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 12, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": 20, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": 1.14, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": 42.5, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 12, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": 20, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": 1.14, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": 42.5, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 12, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": 20, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": 1.14, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": 42.5, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": 12, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": 20, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": 1.14, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 12, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 14, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 14, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 10, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 12, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": 10, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}, {"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-03-27", "day": "Pierna B", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 60.0, "repsDone": 8, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": 47.5, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Pesado controlado)"}, {"name": "Prensa a Una Pierna (Unilateral)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Sin dolor lumbar)"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Sentado", "sets": 4, "repsTarget": "10-15", "weight": null, "repsDone": null, "rpe": "10 (Excéntrica lenta)"}, {"name": "Aductores en Máquina", "sets": 3, "repsTarget": "15-20", "weight": null, "repsDone": null, "rpe": "9 (Opcional)"}]}, {"date": "2026-04-06", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 5, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 8, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-04-07", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pura)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 240.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 107.5, "repsDone": 15, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-04-09", "day": "Torso B", "entries": [{"name": "Press Inclinado barra", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 8, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 8, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 8, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 11, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 9, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 50.0, "repsDone": 10, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": 12, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 8, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 9, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 77.5, "repsDone": null, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 20.0, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 35.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 7, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-04-13", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 7, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 10.0, "repsDone": 8, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}]}, {"date": "2026-04-14", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pura)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 240.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 107.5, "repsDone": 15, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-04-20", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 80.0, "repsDone": 10, "rpe": "8-9 (Fuerza pura)"}]}, {"date": "2026-04-20", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 7, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 11, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}, {"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 4, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 11, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 8, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9 (Controlado)"}, {"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": null, "repsDone": null, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": null, "repsDone": null, "rpe": "9 (Controlado)"}]}, {"date": "2026-04-21", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 8, "rpe": "8-9 (Fuerza pura)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 240.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 107.5, "repsDone": 15, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 8, "rpe": "8-9 (Fuerza pura)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 220.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 107.5, "repsDone": 15, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 35.0, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pura)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 240.0, "repsDone": 8, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 50.0, "repsDone": 8, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-04-27", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 80.0, "repsDone": 10, "rpe": "8-9 (Fuerza pura)"}, {"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 10, "rpe": "8-9 (Fuerza pura)"}, {"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 10, "rpe": "8-9 (Fuerza pura)"}]}, {"date": "2026-04-28", "day": "Torso B", "entries": [{"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 35.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 7, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 35.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 7, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 50.0, "repsDone": null, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9 (Bombeo)"}]}, {"date": "2026-05-11", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 10, "rpe": "8-9 (Fuerza pura)"}]}, {"date": "2026-05-11", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 7, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 11, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 5, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 12, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 15, "rpe": "9 (Controlado)"}]}, {"date": "2026-05-11", "day": "Torso B", "entries": [{"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": null, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9 (Bombeo)"}]}, {"date": "2026-05-12", "day": "Pierna A", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 40.0, "repsDone": 8, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 8, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 50.0, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-05-14", "day": "Torso B", "entries": [{"name": "Press Inclinado", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9 (Pecho alto)"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 12, "rpe": "10 (Quemazón)"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 8, "rpe": "9 (Control)"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 10, "rpe": "9 (Apretar espalda)"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9 (Braquial)"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": null, "rpe": "9 (Bombeo)"}]}, {"date": "2026-05-18", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": 15, "rpe": "9 (Hombro 3D)"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al Fallo", "weight": null, "repsDone": null, "rpe": "10 (Abdomen bajo)"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 15, "rpe": "9 (Con peso)"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1min / Al Fallo", "weight": null, "repsDone": null, "rpe": "8 (Oblicuos)"}, {"name": "Super-serie: Bíceps", "sets": 3, "repsTarget": "12-15", "weight": null, "repsDone": 10, "rpe": "8 (Solo bombeo)"}]}, {"date": "2026-05-19", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 7, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 12, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 10, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 60.0, "repsDone": 8, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 12, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 15, "rpe": "9 (Controlado)"}]}, {"date": "2026-05-20", "day": "Pierna A", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 60.0, "repsDone": 8, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-05-26", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 90.0, "repsDone": 8, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 12, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 12, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 12, "rpe": "9 (Controlado)"}]}, {"date": "2026-05-27", "day": "Pierna A", "entries": [{"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": 80.0, "repsDone": 6, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": null, "repsDone": null, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": null, "repsDone": null, "rpe": "9-10 (Pesado)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 70.0, "repsDone": 10, "rpe": "9-10 (Pesado)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 70.0, "repsDone": 10, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-06-02", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 14, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 60.0, "repsDone": 10, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 12, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 12, "rpe": "9 (Controlado)"}]}, {"date": "2026-06-08", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 12, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 60.0, "repsDone": 8, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 12, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 12, "rpe": "9 (Controlado)"}]}, {"date": "2026-06-09", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 10, "rpe": "8-9 (Fuerza pura)"}, {"name": "Sentadilla Hack", "sets": 4, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8 (Salud lumbar)"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9 (Bombeo)"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "10 (Al fallo)"}, {"name": "Curl Femoral Tumbado (negativas)", "sets": 4, "repsTarget": "8-12", "weight": 70.0, "repsDone": 10, "rpe": "9-10 (Pesado)"}]}, {"date": "2026-06-15", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9 (Fuerza pesada)"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": 12, "rpe": "9 (Carga alta)"}, {"name": "Press Militar (Barra)", "sets": 3, "repsTarget": "6-8", "weight": null, "repsDone": null, "rpe": "8-9 (Sin fallar)"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 60.0, "repsDone": 8, "rpe": "9 (Técnica estricta)"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 12, "rpe": "9 (Estiramiento)"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 12, "rpe": "9 (Controlado)"}]}, {"date": "2026-06-25", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 10, "rpe": "9"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 10, "rpe": "9"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 35.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-06-29", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 4, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 12, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 10, "rpe": "8-9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 60.0, "repsDone": 8, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 12, "rpe": "9"}]}, {"date": "2026-06-30", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 8, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 8, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 60.0, "repsDone": null, "rpe": "9-10"}, {"name": "Abductores", "sets": 3, "repsTarget": "12-15", "weight": 40.0, "repsDone": 10, "rpe": "8"}]}, {"date": "2026-07-07", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 6, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 10, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 7, "rpe": "8-9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 8, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 12, "rpe": "9"}]}, {"date": "2026-07-08", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 7, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 8, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 70.0, "repsDone": null, "rpe": "9-10"}, {"name": "Abductores", "sets": 3, "repsTarget": "12-15", "weight": 40.0, "repsDone": 10, "rpe": "8"}]}, {"date": "2026-07-09", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 120.0, "repsDone": 10, "rpe": "9"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 77.5, "repsDone": 10, "rpe": "9"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-07-15", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 40.0, "repsDone": 10, "rpe": "9"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 10, "rpe": "9"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 12, "rpe": "9"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-07-16", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 8, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 10, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 70.0, "repsDone": null, "rpe": "9-10"}, {"name": "Abductores", "sets": 3, "repsTarget": "12-15", "weight": 47.5, "repsDone": 8, "rpe": "8"}]}, {"date": "2026-07-20", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 90.0, "repsDone": 8, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 13, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 7, "rpe": "8-9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 60.0, "repsDone": 7, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-07-21", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 10, "rpe": "9"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 80.0, "repsDone": 10, "rpe": "9"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-07-23", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 8, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 220.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 62.5, "repsDone": 8, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 80.0, "repsDone": 10, "rpe": "9-10"}, {"name": "Abductores", "sets": 3, "repsTarget": "12-15", "weight": 62.5, "repsDone": 8, "rpe": "8"}]}, {"date": "2026-07-27", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 90.0, "repsDone": 6, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 10, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-07-29", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 15.0, "repsDone": null, "rpe": "9"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": null, "rpe": "9"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al fallo", "weight": null, "repsDone": 12, "rpe": "10"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1 min", "weight": null, "repsDone": 103, "rpe": "8"}]}, {"date": "2026-08-14", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 4, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 10, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": null, "rpe": "8-9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 8, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 8, "rpe": "9"}]}, {"date": "2026-08-16", "day": "Detalles", "entries": [{"name": "Elevaciones Laterales (Mancuernas)", "sets": 4, "repsTarget": "15-20", "weight": 12.5, "repsDone": 10, "rpe": "9"}, {"name": "Abdominales en Banco", "sets": 4, "repsTarget": "8-10", "weight": 20.0, "repsDone": 10, "rpe": "9"}, {"name": "Elevación de Piernas (Maquina)", "sets": 4, "repsTarget": "Al fallo", "weight": null, "repsDone": 10, "rpe": "10"}, {"name": "Plancha o Abdomen tumbado", "sets": 3, "repsTarget": "1 min", "weight": null, "repsDone": 62, "rpe": "8"}]}, {"date": "2026-08-31", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 4, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 15, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 5, "rpe": "8-9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 8, "rpe": "9"}]}, {"date": "2026-09-01", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 5, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 180.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 52.5, "repsDone": 10, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 90.0, "repsDone": 10, "rpe": "9-10"}]}, {"date": "2026-09-09", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 90.0, "repsDone": 7, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 12, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 5, "rpe": "8-9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 8, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 42.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-09-09", "day": "Pierna A", "entries": [{"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 12, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 8, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "15-20", "weight": 97.5, "repsDone": 10, "rpe": "9-10"}, {"name": "Abductores", "sets": 3, "repsTarget": "12-15", "weight": 62.5, "repsDone": 10, "rpe": "8"}]}, {"date": "2026-09-10", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 32.5, "repsDone": 10, "rpe": "9"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 120.0, "repsDone": 6, "rpe": "9"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 12, "rpe": "9"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 12.5, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-09-14", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 3, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 15, "rpe": "9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 47.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-09-21", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 100.0, "repsDone": 3, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 12, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 70.0, "repsDone": 10, "rpe": "8-9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 47.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl con Barra de Pie", "sets": 3, "repsTarget": "8-10", "weight": 30.0, "repsDone": null, "rpe": "9"}]}, {"date": "2026-09-23", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 110.0, "repsDone": 4, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 8, "rpe": "9"}, {"name": "Extensiones de Cuádriceps (negativas)", "sets": 3, "repsTarget": "15-20", "weight": 70.0, "repsDone": null, "rpe": "9-10"}]}, {"date": "2026-09-23", "day": "Torso B", "entries": [{"name": "Press Inclinado Mancuernas", "sets": 4, "repsTarget": "8-10", "weight": 37.5, "repsDone": 8, "rpe": "9"}, {"name": "Jalón al Pecho", "sets": 4, "repsTarget": "10-12", "weight": 100.0, "repsDone": 10, "rpe": "9"}, {"name": "Remo en Polea Baja (Gironde)", "sets": 3, "repsTarget": "12-15", "weight": 85.0, "repsDone": 10, "rpe": "9"}, {"name": "Cruces de Poleas (Pecho)", "sets": 3, "repsTarget": "12-15", "weight": 37.5, "repsDone": 10, "rpe": "9"}, {"name": "Curl Martillo (superserie)", "sets": 3, "repsTarget": "10-12", "weight": 15.0, "repsDone": 10, "rpe": "9"}, {"name": "Extensión Tríceps Polea (superserie)", "sets": 3, "repsTarget": "12-15", "weight": 30.0, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-09-28", "day": "Torso A", "entries": [{"name": "Press Banca Plano", "sets": 4, "repsTarget": "3-5", "weight": 105.0, "repsDone": 2, "rpe": "8-9"}, {"name": "Dominadas Lastradas", "sets": 3, "repsTarget": "6-8", "weight": 0.0, "repsDone": 11, "rpe": "9"}, {"name": "Press Militar (barra)", "sets": 3, "repsTarget": "6-8", "weight": 80.0, "repsDone": 10, "rpe": "8-9"}, {"name": "Remo Tumbado en T", "sets": 4, "repsTarget": "8-10", "weight": 50.0, "repsDone": 10, "rpe": "9"}, {"name": "Ext. Tríceps Tras Nuca Polea", "sets": 3, "repsTarget": "10-12", "weight": 47.5, "repsDone": 10, "rpe": "9"}]}, {"date": "2026-09-29", "day": "Pierna A", "entries": [{"name": "Sentadilla", "sets": 3, "repsTarget": "3-5", "weight": 100.0, "repsDone": 8, "rpe": "8"}, {"name": "Prensa Inclinada", "sets": 3, "repsTarget": "10-12", "weight": 200.0, "repsDone": 10, "rpe": "9"}, {"name": "Curl Femoral Tumbado", "sets": 4, "repsTarget": "8-12", "weight": 57.5, "repsDone": 10, "rpe": "9"}, {"name": "Extensiones de Cuádriceps", "sets": 3, "repsTarget": "8-12", "weight": 97.5, "repsDone": 10, "rpe": "9"}]}]};
+const LS_KEY = 'gymapp.v1';
+const DAYNAMES_ES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+// Variantes rápidas de equipamiento según tu propio historial
+const EX_VARIANTS = {
+  'sentadilla': ['Sentadilla', 'Sentadilla Hack', 'Sentadilla Guiada'],
+  'prensa inclinada': ['Prensa Inclinada', 'Prensa a Una Pierna (Unilateral)'],
+  'curl femoral tumbado': ['Curl Femoral Tumbado', 'Curl Femoral Sentado'],
+  'press inclinado mancuernas': ['Press Inclinado Mancuernas', 'Press Inclinado barra'],
+  'press militar (barra)': ['Press Militar (barra)', 'Press Militar (Barra/Manc)'],
+  'remo tumbado en t': ['Remo Tumbado en T', 'Remo con Barra (Pendlay)']
+};
+
+let state = load();
+state.settings = state.settings || { weeklyGoal: 4 };
+state.bw = state.bw || [];
+
+function load(){
+  const seedCopy = JSON.parse(JSON.stringify(SEED));
+  const seedLogs = seedCopy.history || [];
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      parsed.logs = parsed.logs || [];
+      const existingKeys = new Set(parsed.logs.map(x => x.date + '|' + x.day));
+      seedLogs.forEach(sl => {
+        if(!existingKeys.has(sl.date + '|' + sl.day)) parsed.logs.push(sl);
+      });
+      parsed.logs.sort((a,b)=>a.date<b.date?-1:1);
+      return parsed;
+    }
+  }catch(e){}
+  seedCopy.logs = seedLogs;
+  delete seedCopy.history;
+  return seedCopy;
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){ toast('No se pudo guardar (almacenamiento lleno)'); } }
+function norm(s){ return (s||'').toLowerCase().replace(/\s+/g,' ').trim(); }
+// Nombre base sin "(negativas)" o "(dropset)" para agrupar bien el historial
+function baseExName(s){
+  return norm(s).replace(/\((negativas|dropset|rest-pause)\)/g,'').replace(/\s+/g,' ').trim();
+}
+// Detecta qué modalidad tenía una entrada guardada en el historial
+function entryMode(e){
+  const n = norm(e.name), rpe = norm(e.rpe||'');
+  if(n.includes('(negativas)') || rpe.includes('negativa')) return 'Negativas';
+  if(n.includes('(dropset)') || rpe.includes('dropset') || rpe.includes('drop:')) return 'Dropset';
+  if(n.includes('(rest-pause)') || rpe.includes('rest-pause')) return 'Rest-Pause';
+  return 'Normal';
+}
+function e1rm(w,r){ return (w>0&&r>0)? Math.round(w*(1+r/30)*10)/10 : null; }
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function fmtDM(iso){ if(!iso||!iso.includes('-')) return iso||''; const [y,m,d]=iso.split('-'); return d+'/'+m; }
+function weekdayES(iso){ const d=new Date(iso+'T12:00:00'); return DAYNAMES_ES[d.getDay()]||''; }
+function parseRepRange(t){
+  const m=(t||'').match(/(\d+)\s*-\s*(\d+)/);
+  if(m) return {min:+m[1], max:+m[2]};
+  const s=(t||'').match(/^(\d+)$/);
+  return s ? {min:+s[1], max:+s[1]} : null;
+}
+function topReps(t){ const r=parseRepRange(t); return r?r.max:null; }
+function isoWeekKey(iso){
+  const d=new Date(iso+'T12:00:00'); if(isNaN(d)) return '2026-W01';
+  const t=new Date(d);
+  t.setDate(t.getDate()+3-((d.getDay()+6)%7));
+  const wk1=new Date(t.getFullYear(),0,4);
+  const wn=1+Math.round(((t-wk1)/86400000-3+((wk1.getDay()+6)%7))/7);
+  return t.getFullYear()+'-W'+String(wn).padStart(2,'0');
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2100); }
+
+function detectMuscle(name){
+  const n = norm(name);
+  if(/banca|inclinado|cruces|pecho|peck|fondos/.test(n)) return 'Pecho';
+  if(/dominada|jal[oó]n|remo|espalda|girond|pendlay/.test(n)) return 'Espalda';
+  if(/sentadilla|prensa|cu[aá]driceps|hack|zancada|b[uú]lgara/.test(n)) return 'Cuádriceps';
+  if(/femoral|isquio|hip|hiperextension|peso muerto|gl[uú]teo|aduct|abduct/.test(n)) return 'Isquios / Glúteo';
+  if(/militar|lateral|hombro|p[aá]jaro|deltoid/.test(n)) return 'Hombro';
+  if(/b[ií]ceps|tr[ií]ceps|curl|martillo|extensi[oó]n tr|ext\. tr|super-serie: b/.test(n)) return 'Brazos';
+  if(/abdom|plancha|piernas|core|oblicuo|crunch/.test(n)) return 'Core';
+  return 'Otros';
+}
+
+function suggestOverload(ex, last, mode){
+  if(!last || last.e.weight==null) return null;
+  const w = +last.e.weight;
+  const r = +(last.e.repsDone||0);
+  const rng = parseRepRange(ex.reps);
+  const isLower = /sentadilla|prensa|hack|femoral|muerto/.test(norm(ex.name));
+  const inc = isLower ? 5 : 2.5;
+  if(mode === 'Negativas'){
+    return '⚡ Modo Negativas: controla 3-4s la bajada (última vez: ' + w + ' kg' + (r ? ' × '+r : '') + ')';
+  }
+  if(mode === 'Dropset'){
+    return '🔥 Modo Dropset: haz serie pesada (' + w + ' kg) + 1-2 bajadas de peso sin descanso';
+  }
+  if(mode === 'Rest-Pause'){
+    return '⏱️ Rest-Pause: llega cerca del fallo con ' + w + ' kg, descansa 15-20s y saca 2-4 reps más';
+  }
+  if(!rng){
+    return r>0 ? ('Objetivo hoy: ' + w + ' kg × ' + (r+1) + ' reps') : ('Objetivo hoy: mantener ' + w + ' kg');
+  }
+  if(r >= rng.max){
+    return '🔥 Tope alcanzado: sube a ' + (w + inc) + ' kg × ' + rng.min + ' reps';
+  } else if(r >= rng.min){
+    return '🎯 Objetivo hoy: ' + w + ' kg × ' + (r + 1) + ' reps';
+  } else {
+    return '💪 Consolida peso: ' + w + ' kg × ' + rng.min + ' reps';
+  }
+}
+
+function formatRpeCell(baseRpe, mode, dropText, setDetails, note){
+  let out = (baseRpe || '').trim();
+  const extra = [];
+  if(mode && mode !== 'Normal'){
+    extra.push('Modo: ' + mode);
+  }
+  if(dropText && dropText.trim()){
+    extra.push('Drop: ' + dropText.trim());
+  }
+  if(setDetails && setDetails.length){
+    const sStr = setDetails.map((s,i)=>'S'+(i+1)+':'+s.w+'x'+s.r).join(', ');
+    extra.push('Series: ' + sStr);
+  }
+  if(note && note.trim()){
+    extra.push('Nota: ' + note.trim());
+  }
+  if(extra.length){
+    out = (out ? out + ' ' : '') + '[' + extra.join(' | ') + ']';
+  }
+  return out;
+}
+
+let curDay = 0;
+
+// ---------- NAV ----------
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.v).classList.add('active');
+    if(b.dataset.v==='metricas') renderMetrics();
+    if(b.dataset.v==='rutina') renderEdit();
+    window.scrollTo(0,0);
+  };
+});
+
+// ---------- ENTRENAR ----------
+function renderDaybar(){
+  const bar=document.getElementById('daybar'); bar.innerHTML='';
+  state.routine.forEach((d,i)=>{
+    const b=document.createElement('button');
+    b.className=(i===curDay?'sel':''); b.innerHTML=d.name+'<small>'+(d.focus||'')+'</small>';
+    b.onclick=()=>{curDay=i; renderDaybar(); renderExlist();};
+    bar.appendChild(b);
+  });
+}
+
+// Busca la última vez de este ejercicio (filtrando opcionalmente por modalidad Normal / Negativas / Dropset)
+function lastEntryByMode(name, mode){
+  const bName = baseExName(name);
+  let bestSameMode = null, bestAny = null;
+  state.logs.forEach(s=>s.entries.forEach(e=>{
+    if(baseExName(e.name)===bName && e.weight!=null){
+      if(!bestAny || s.date > bestAny.date) bestAny = {date:s.date, e, mode:entryMode(e)};
+      if(!mode || entryMode(e) === mode){
+        if(!bestSameMode || s.date > bestSameMode.date) bestSameMode = {date:s.date, e, mode:entryMode(e)};
+      }
+    }
+  }));
+  return { sameMode: bestSameMode, anyMode: bestAny };
+}
+
+function renderExlist(){
+  const wrap=document.getElementById('exlist'); wrap.innerHTML='';
+  const day=state.routine[curDay];
+  day.exercises.forEach((ex,idx)=>{
+    const c=document.createElement('div'); c.className='card';
+    c.dataset.curName = ex.name;
+    c.dataset.curMode = 'Normal';
+
+    // Comprobar si este ejercicio tiene variantes de máquina/barra configuradas
+    const vKey = Object.keys(EX_VARIANTS).find(k => EX_VARIANTS[k].some(v => baseExName(v) === baseExName(ex.name)));
+    const variants = vKey ? EX_VARIANTS[vKey] : null;
+    let titleHtml = '<span class="exname" id="exTitle'+idx+'">'+esc(ex.name)+'</span>';
+    if(variants){
+      titleHtml = '<select class="var-sel" id="varSel'+idx+'" title="Cambiar variante hoy">' +
+        variants.map(v => '<option value="'+esc(v)+'" '+(baseExName(v)===baseExName(ex.name)?'selected':'')+'>'+esc(v)+'</option>').join('') +
+        '</select>';
+    }
+
+    const numSets = Math.max(1, parseInt(ex.sets, 10) || 3);
+    let setRowsHtml = '';
+    for(let s=0; s<numSets; s++){
+      setRowsHtml += '<div class="set-line">'+
+        '<span class="set-lbl">Serie '+(s+1)+'</span>'+
+        '<input type="number" inputmode="decimal" step="0.5" class="s-w" data-s="'+s+'" placeholder="kg">'+
+        '<input type="number" inputmode="numeric" class="s-r" data-s="'+s+'" placeholder="reps">'+
+      '</div>';
+    }
+
+    c.innerHTML=
+      '<div class="exhead">'+titleHtml+
+      '<span class="target">'+(ex.sets||'')+' series · '+(ex.reps||'')+' · RPE '+(ex.rpe||'-')+'</span></div>'+
+      (ex.note?'<div class="note">'+ex.note+'</div>':'')+
+      '<div class="mode-bar" id="mbar'+idx+'">'+
+        '<button type="button" class="mode-chip on" data-m="Normal">Normal</button>'+
+        '<button type="button" class="mode-chip" data-m="Dropset">🔥 Dropset</button>'+
+        '<button type="button" class="mode-chip" data-m="Negativas">⚡ Negativas</button>'+
+        '<button type="button" class="mode-chip" data-m="Rest-Pause">⏱️ Rest-Pause</button>'+
+      '</div>'+
+      '<div id="lastBox'+idx+'"></div>'+
+      '<div class="overload-box">'+
+        '<span class="badge-prog" id="prog'+idx+'"></span>'+
+        '<span class="badge-1rm" id="rm'+idx+'">1RM hoy: —</span>'+
+      '</div>'+
+      '<div class="row">'+
+        '<div class="fld"><label id="wLbl'+idx+'">Mejor Peso (kg)</label><input type="number" inputmode="decimal" step="0.5" class="i-w" data-i="'+idx+'"></div>'+
+        '<div class="fld"><label id="rLbl'+idx+'">Mejor Reps</label><input type="number" inputmode="numeric" class="i-r" data-i="'+idx+'"></div>'+
+        '<div class="fld"><label>RPE</label><input type="text" class="i-rpe" data-i="'+idx+'" placeholder="'+(ex.rpe||'8')+'"></div>'+
+      '</div>'+
+      '<div class="drop-inputs" id="dropBox'+idx+'">'+
+        '<label style="display:block;font-size:11.5px;font-weight:700;color:var(--warn);margin-bottom:4px">Detalle de bajadas del Dropset (opcional)</label>'+
+        '<input type="text" class="drop-txt" placeholder="Ej: 200x10 → 160x8 → 120x10 (al fallo)" style="font-size:13.5px;padding:8px 10px;background:var(--surface)">'+
+      '</div>'+
+      '<button type="button" class="sets-toggle" data-i="'+idx+'">▾ Desglosar serie por serie ('+numSets+' series) / Nota</button>'+
+      '<div class="sets-drawer" id="drawer'+idx+'">'+
+        '<div class="muted" style="font-size:11.5px;margin-bottom:7px">Rellena cada serie: el mejor peso×reps se pondrá solo arriba para mantener intacto el formato de tu Excel.</div>'+
+        setRowsHtml+
+        '<input type="text" class="note-inp" placeholder="Nota del ejercicio (ej: molestia hombro, banco ocupado...)">'+
+      '</div>'+
+      '<div class="hint" id="hint'+idx+'">↑ Has llegado al tope de reps: la próxima sesión sube peso</div>';
+    wrap.appendChild(c);
+
+    const wInp = c.querySelector('.i-w');
+    const rInp = c.querySelector('.i-r');
+    const rmBadge = c.querySelector('#rm'+idx);
+    const progBadge = c.querySelector('#prog'+idx);
+    const lastBox = c.querySelector('#lastBox'+idx);
+    const dropBox = c.querySelector('#dropBox'+idx);
+    const hintEl = c.querySelector('#hint'+idx);
+    const drawer = c.querySelector('#drawer'+idx);
+    const top = topReps(ex.reps);
+
+    function refreshCardContext(fillWeight){
+      const activeName = c.dataset.curName;
+      const activeMode = c.dataset.curMode;
+      const { sameMode, anyMode } = lastEntryByMode(activeName, activeMode);
+      const ref = sameMode || anyMode;
+
+      let lHtml = '';
+      if(sameMode){
+        const l1rm = e1rm(sameMode.e.weight, sameMode.e.repsDone);
+        lHtml = '<div class="last">Última vez en <b>'+activeMode+'</b> ('+fmtDM(sameMode.date)+'): '+sameMode.e.weight+' kg × '+(sameMode.e.repsDone||'?')+(l1rm?' · 1RM ~'+l1rm+' kg':'')+'</div>';
+      } else if(anyMode){
+        lHtml = '<div class="last">Sin registro previo en '+activeMode+' · Última en '+anyMode.mode+' ('+fmtDM(anyMode.date)+'): '+anyMode.e.weight+' kg × '+(anyMode.e.repsDone||'?')+'</div>';
+      }
+      lastBox.innerHTML = lHtml;
+
+      const ovTxt = suggestOverload({name:activeName, reps:ex.reps}, ref, activeMode);
+      if(ovTxt){
+        progBadge.style.display = 'inline-flex';
+        progBadge.textContent = ovTxt;
+      } else {
+        progBadge.style.display = 'none';
+      }
+
+      dropBox.classList.toggle('open', activeMode === 'Dropset');
+      c.querySelector('#wLbl'+idx).textContent = activeMode === 'Dropset' ? 'Peso inicial (kg)' : (activeMode === 'Negativas' ? 'Peso Negativa (kg)' : 'Mejor Peso (kg)');
+
+      if(fillWeight){
+        wInp.value = ref ? ref.e.weight : '';
+        drawer.querySelectorAll('.s-w').forEach(sw => { sw.value = ref ? ref.e.weight : ''; });
+      }
+      updateCardCalc();
+    }
+
+    function updateCardCalc(){
+      const wv = parseFloat(wInp.value), rv = parseFloat(rInp.value);
+      const est = e1rm(wv, rv);
+      rmBadge.textContent = est ? ('1RM hoy: ' + est + ' kg') : '1RM hoy: —';
+      hintEl.classList.toggle('up', c.dataset.curMode === 'Normal' && top!=null && rv>=top && rInp.value!=='');
+    }
+
+    wInp.oninput = updateCardCalc;
+    rInp.oninput = updateCardCalc;
+
+    // Selector de modalidad (Normal / Dropset / Negativas / Rest-Pause)
+    c.querySelectorAll('.mode-chip').forEach(chip => {
+      chip.onclick = () => {
+        c.querySelectorAll('.mode-chip').forEach(x => x.classList.remove('on'));
+        chip.classList.add('on');
+        c.dataset.curMode = chip.dataset.m;
+        refreshCardContext(true);
+      };
+    });
+
+    // Selector de variante de ejercicio si existe
+    const varSel = c.querySelector('#varSel'+idx);
+    if(varSel){
+      varSel.onchange = () => {
+        c.dataset.curName = varSel.value;
+        refreshCardContext(true);
+      };
+    }
+
+    // Toggle serie por serie
+    const toggleBtn = c.querySelector('.sets-toggle');
+    toggleBtn.onclick = () => {
+      drawer.classList.toggle('open');
+      toggleBtn.textContent = (drawer.classList.contains('open') ? '▴ Ocultar desglose de series' : '▾ Desglosar serie por serie ('+numSets+' series) / Nota');
+    };
+
+    drawer.querySelectorAll('.s-w, .s-r').forEach(sinp => {
+      sinp.oninput = () => {
+        let bestW = null, bestR = null, bestScore = -1;
+        drawer.querySelectorAll('.set-line').forEach(line => {
+          const sw = parseFloat(line.querySelector('.s-w').value);
+          const sr = parseFloat(line.querySelector('.s-r').value);
+          if(!isNaN(sw) && !isNaN(sr) && sr > 0){
+            const score = sw * (1 + sr/30);
+            if(score > bestScore){ bestScore = score; bestW = sw; bestR = sr; }
+          }
+        });
+        if(bestW !== null){
+          wInp.value = bestW;
+          rInp.value = bestR;
+          updateCardCalc();
+        }
+      };
+    });
+
+    refreshCardContext(true);
+  });
+}
+
+document.getElementById('btnSave').onclick=()=>{
+  const day=state.routine[curDay];
+  const date=document.getElementById('sesdate').value||todayISO();
+  const entries=[];
+  document.querySelectorAll('#exlist .card').forEach((c,idx)=>{
+    const w=c.querySelector('.i-w').value, r=c.querySelector('.i-r').value, rpe=c.querySelector('.i-rpe').value;
+    const mode = c.dataset.curMode || 'Normal';
+    const chosenName = c.dataset.curName || day.exercises[idx].name;
+    const dropText = c.querySelector('.drop-txt') ? c.querySelector('.drop-txt').value.trim() : '';
+    const note=c.querySelector('.note-inp') ? c.querySelector('.note-inp').value.trim() : '';
+    const setDetails=[];
+    c.querySelectorAll('.set-line').forEach(line=>{
+      const sw=line.querySelector('.s-w').value, sr=line.querySelector('.s-r').value;
+      if(sw!=='' && sr!=='') setDetails.push({w:+sw, r:+sr});
+    });
+    if(w!==''||r!==''||setDetails.length||dropText!==''||note!==''){
+      const ex=day.exercises[idx];
+      const activeSets = setDetails.length ? setDetails.length : ex.sets;
+      // Si eligió Negativas y el nombre aún no lleva "(negativas)", mantenemos el convenio que ya usabas en tu hoja o lo anotamos limpio en RPE
+      let finalName = chosenName;
+      if(mode === 'Negativas' && !/negativa/i.test(finalName)){
+        finalName = chosenName + ' (negativas)';
+      } else if(mode === 'Dropset' && !/dropset/i.test(finalName)){
+        finalName = chosenName + ' (dropset)';
+      }
+      const combinedRpe = formatRpeCell(rpe||ex.rpe||'', mode, dropText, setDetails, note);
+      entries.push({
+        name:finalName,
+        sets:activeSets,
+        repsTarget:ex.reps,
+        weight:w!==''?+w:null,
+        repsDone:r!==''?+r:null,
+        rpe:combinedRpe,
+        mode:mode!=='Normal'?mode:undefined,
+        dropText:dropText||undefined,
+        setDetails:setDetails.length?setDetails:undefined,
+        note:note||undefined
+      });
+    }
+  });
+  if(!entries.length){ toast('Apunta al menos un ejercicio con repeticiones o peso'); return; }
+  var __prs=checkPRs(entries);
+  const newSes={date,day:day.name,entries};
+  state.logs.push(newSes);
+  state.logs.sort((a,b)=>a.date<b.date?-1:1);
+  save(); renderExlist(); renderRecent();
+  toast('Sesión guardada ('+entries.length+' ejercicios)'); afterSave(__prs);
+  syncSessionToSheet(newSes, false);
+};
+
+function renderRecent(){
+  const wrap=document.getElementById('recent');
+  const last=[...state.logs].slice(-6).reverse();
+  if(!last.length){wrap.innerHTML='';return;}
+  wrap.innerHTML='<h2 class="sec">Últimas sesiones</h2><div class="card" id="recardlist"></div>';
+  const list=wrap.querySelector('#recardlist');
+  last.forEach(s=>{
+    const i=state.logs.indexOf(s);
+    const div=document.createElement('div'); div.className='sesline';
+    div.innerHTML='<span><span class="tag">'+s.day+'</span> &nbsp;'+weekdayES(s.date)+' '+fmtDM(s.date)+
+      ' <span class="muted">· '+s.entries.length+' ej.</span></span>'+
+      '<div style="display:flex;gap:5px"><button class="iconbtn btn-edit" title="Editar">✎</button><button class="iconbtn btn-del" title="Borrar">✕</button></div>';
+    div.querySelector('.btn-edit').onclick=()=>openEditModal(i);
+    div.querySelector('.btn-del').onclick=()=>{ if(confirm('¿Borrar esta sesión?')){ state.logs.splice(i,1); save(); renderRecent(); renderExlist(); } };
+    list.appendChild(div);
+  });
+}
+document.getElementById('btnHist').onclick=()=>{
+  document.querySelector('nav button[data-v=metricas]').click();
+  setTimeout(()=>{ const el=document.getElementById('histSearch'); if(el) el.scrollIntoView({behavior:'smooth'}); },150);
+};
+
+// ---------- MÉTRICAS + VOLUMEN MUSCULAR (5) + HISTORIAL COMPLETO (6) ----------
+function allNames(){
+  const m=new Map();
+  state.routine.forEach(d=>d.exercises.forEach(e=>m.set(baseExName(e.name),e.name)));
+  state.logs.forEach(s=>s.entries.forEach(e=>{
+    const b = baseExName(e.name);
+    if(!m.has(b)) m.set(b, e.name.replace(/\s*\((negativas|dropset|rest-pause)\)/i,''));
+  }));
+  return [...m.values()].sort((a,b)=>a.localeCompare(b,'es'));
+}
+function renderMuscleVolume(){
+  const sel = document.getElementById('mvolWeekSel');
+  const card = document.getElementById('mvolCard');
+  if(!sel || !card) return;
+  const allWeeks = [...new Set(state.logs.map(s=>isoWeekKey(s.date)))].sort().reverse();
+  const curWk = isoWeekKey(todayISO());
+  if(!allWeeks.includes(curWk)) allWeeks.unshift(curWk);
+  const prevVal = sel.value;
+  sel.innerHTML = allWeeks.slice(0,20).map(w=>'<option value="'+w+'">'+(w===curWk?'Semana actual ('+w+')':w)+'</option>').join('');
+  if(allWeeks.includes(prevVal)) sel.value = prevVal;
+  sel.onchange = paintMuscleBars;
+  paintMuscleBars();
+
+  function paintMuscleBars(){
+    const wk = sel.value;
+    const muscles = {'Pecho':0, 'Espalda':0, 'Cuádriceps':0, 'Isquios / Glúteo':0, 'Hombro':0, 'Brazos':0, 'Core':0};
+    state.logs.filter(s=>isoWeekKey(s.date)===wk).forEach(s=>{
+      s.entries.forEach(e=>{
+        if(e.weight!=null || e.repsDone!=null){
+          const m = detectMuscle(e.name);
+          if(muscles[m]!=null) muscles[m] += (+e.sets || 3);
+        }
+      });
+    });
+    let html = '<div class="muted" style="font-size:12px;margin-bottom:10px">Series efectivas registradas en la semana seleccionada (rango óptimo hipertrofia: 10–20 series/semana):</div>';
+    Object.keys(muscles).forEach(m=>{
+      const val = muscles[m];
+      const pct = Math.min(100, Math.round((val / 20) * 100));
+      const col = val >= 10 ? 'var(--ok)' : (val > 0 ? 'var(--accent)' : 'var(--line)');
+      html += '<div class="mvol-row">'+
+        '<span class="mvol-name">'+m+'</span>'+
+        '<div class="mvol-track"><div class="mvol-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
+        '<span class="mvol-val">'+val+' / 16 ser</span>'+
+      '</div>';
+    });
+    card.innerHTML = html;
+  }
+}
+
+function renderFullHistory(){
+  const searchInp = document.getElementById('histSearch');
+  const daySel = document.getElementById('histDayFilter');
+  const listWrap = document.getElementById('fullHistList');
+  if(!searchInp || !daySel || !listWrap) return;
+
+  const days = [...new Set(state.logs.map(s=>s.day))].sort();
+  const curFilter = daySel.value;
+  daySel.innerHTML = '<option value="">Todos los días ('+state.logs.length+')</option>' + days.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('');
+  if(days.includes(curFilter)) daySel.value = curFilter;
+
+  function filterAndPaint(){
+    const q = norm(searchInp.value);
+    const df = daySel.value;
+    const matches = [];
+    for(let i=state.logs.length-1; i>=0; i--){
+      const s = state.logs[i];
+      if(df && s.day !== df) continue;
+      if(q){
+        const hay = norm(s.date + ' ' + s.day + ' ' + s.entries.map(e=>e.name+' '+(e.rpe||'')+' '+(e.weight||'')).join(' '));
+        if(!hay.includes(q)) continue;
+      }
+      matches.push({s, idx:i});
+    }
+    if(!matches.length){
+      listWrap.innerHTML = '<p class="muted">No se encontraron sesiones con ese filtro.</p>';
+      return;
+    }
+    listWrap.innerHTML = '';
+    matches.slice(0, 40).forEach(({s, idx})=>{
+      const row = document.createElement('div');
+      row.className = 'sesline';
+      const summary = s.entries.filter(e=>e.weight!=null||e.repsDone!=null).slice(0,3).map(e=>e.name.split(' ')[0]+' '+(e.weight?e.weight+'kg':'')).join(', ');
+      row.innerHTML = '<div style="min-width:0;flex:1"><span class="tag">'+esc(s.day)+'</span> <b>'+s.date+'</b> <span class="muted">('+s.entries.length+' ej.)</span>'+
+        (summary?'<div class="muted" style="font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(summary)+'</div>':'')+'</div>'+
+        '<div style="display:flex;gap:6px"><button class="btn ghost sm btn-ed" style="padding:6px 10px;font-size:12px">Ver / Editar</button></div>';
+      row.querySelector('.btn-ed').onclick = () => openEditModal(idx);
+      listWrap.appendChild(row);
+    });
+  }
+  searchInp.oninput = filterAndPaint;
+  daySel.onchange = filterAndPaint;
+  filterAndPaint();
+}
+
+let editingIdx = -1;
+function openEditModal(idx){
+  editingIdx = idx;
+  const s = state.logs[idx];
+  if(!s) return;
+  const modal = document.getElementById('editModal');
+  document.getElementById('editSesDate').value = s.date;
+  document.getElementById('editSesDay').value = s.day;
+  const wrap = document.getElementById('editSesEntries');
+  wrap.innerHTML = '';
+  s.entries.forEach((e, ei)=>{
+    appendEditEntryRow(wrap, e);
+  });
+  modal.classList.add('open');
+}
+function appendEditEntryRow(wrap, e){
+  const div = document.createElement('div');
+  div.className = 'editrow';
+  div.innerHTML =
+    '<input class="nm" value="'+esc(e.name)+'" placeholder="Ejercicio">'+
+    '<input class="st" type="number" value="'+(e.sets??3)+'" title="Series" placeholder="Ser">'+
+    '<input class="rp" type="number" step="0.5" value="'+(e.weight??'')+'" title="Peso (kg)" placeholder="kg">'+
+    '<input class="pe" type="number" step="0.01" value="'+(e.repsDone??'')+'" title="Reps" placeholder="reps">'+
+    '<input class="rpe-e" value="'+esc(e.rpe||'')+'" placeholder="RPE / Nota" style="flex:1 1 70px">'+
+    '<button class="iconbtn" title="Quitar">✕</button>';
+  div.querySelector('button').onclick = () => div.remove();
+  wrap.appendChild(div);
+}
+document.getElementById('closeEditModal').onclick = () => document.getElementById('editModal').classList.remove('open');
+document.getElementById('editAddEntry').onclick = () => {
+  appendEditEntryRow(document.getElementById('editSesEntries'), {name:'', sets:3, repsTarget:'8-12', weight:'', repsDone:'', rpe:'9'});
+};
+document.getElementById('saveEditModal').onclick = () => {
+  if(editingIdx < 0 || !state.logs[editingIdx]) return;
+  const orig = state.logs[editingIdx];
+  const newDate = document.getElementById('editSesDate').value || orig.date;
+  const newDay = document.getElementById('editSesDay').value.trim() || orig.day;
+  const newEntries = [];
+  document.querySelectorAll('#editSesEntries .editrow').forEach((r, idx)=>{
+    const nm = r.querySelector('.nm').value.trim();
+    if(!nm) return;
+    const st = parseInt(r.querySelector('.st').value, 10) || 3;
+    const wv = r.querySelector('.rp').value;
+    const rv = r.querySelector('.pe').value;
+    const rpev = r.querySelector('.rpe-e').value.trim();
+    const prevTarget = (orig.entries[idx] && orig.entries[idx].repsTarget) || '8-12';
+    newEntries.push({
+      name: nm,
+      sets: st,
+      repsTarget: prevTarget,
+      weight: wv !== '' ? +wv : null,
+      repsDone: rv !== '' ? +rv : null,
+      rpe: rpev
+    });
+  });
+  state.logs[editingIdx] = { date: newDate, day: newDay, entries: newEntries };
+  state.logs.sort((a,b)=>a.date<b.date?-1:1);
+  save();
+  document.getElementById('editModal').classList.remove('open');
+  renderAll();
+  if(document.getElementById('metricas').classList.contains('active')) renderMetrics();
+  toast('Sesión actualizada');
+};
+document.getElementById('delEditModal').onclick = () => {
+  if(editingIdx < 0) return;
+  if(confirm('¿Seguro que quieres borrar esta sesión del historial?')){
+    state.logs.splice(editingIdx, 1);
+    save();
+    document.getElementById('editModal').classList.remove('open');
+    renderAll();
+    if(document.getElementById('metricas').classList.contains('active')) renderMetrics();
+    toast('Sesión eliminada');
+  }
+};
+
+function renderMetrics(){
+  const total=state.logs.length;
+  const thisWk=isoWeekKey(todayISO());
+  const wkCount=state.logs.filter(s=>isoWeekKey(s.date)===thisWk).length;
+  let vol=0,withW=0,entries=0;
+  state.logs.forEach(s=>s.entries.forEach(e=>{entries++; if(e.weight!=null){withW++; vol+=(e.sets||1)*(e.weight)*(e.repsDone||1);}}));
+  document.getElementById('cards4').innerHTML=
+    metric('Sesiones',total,'desde '+(state.logs[0]?fmtDM(state.logs[0].date):'-'))+
+    metric('Esta semana',wkCount,'sesiones')+
+    metric('Con peso',(entries?Math.round(withW/entries*100):0)+'%','de las series');
+  renderMuscleVolume();
+  const byWk={};
+  state.logs.forEach(s=>{const k=isoWeekKey(s.date); byWk[k]=(byWk[k]||0)+1;});
+  const weeks=lastNWeeks(16);
+  document.getElementById('chAdh').innerHTML=barChart(weeks.map(w=>({label:w.lbl,value:byWk[w.key]||0})),{max:Math.max(4,...weeks.map(w=>byWk[w.key]||0)),unit:''});
+  const sel=document.getElementById('exsel'); const names=allNames();
+  const prev=sel.value;
+  sel.innerHTML=names.map(n=>'<option>'+n+'</option>').join('');
+  if(names.includes(prev)) sel.value=prev; else if(names.includes('Press Banca Plano')) sel.value='Press Banca Plano';
+  sel.onchange=renderE1rm; renderE1rm();
+  renderFullHistory();
+}
+function renderE1rm(){
+  const name=document.getElementById('exsel').value; const bTarget=baseExName(name);
+  const pts=[]; let bestSet=null, best1rm=0;
+  state.logs.forEach(s=>{ let best=null;
+    s.entries.forEach(e=>{ if(baseExName(e.name)===bTarget&&e.weight!=null){ const v=e.weight; if(best==null||v>best)best=v;
+      const rm = e1rm(v, e.repsDone||1) || v;
+      if(rm > best1rm) best1rm = rm;
+      if(!bestSet||v>bestSet.w||(v===bestSet.w&&(e.repsDone||0)>(bestSet.r||0)))bestSet={w:v,r:e.repsDone}; }});
+    if(best!=null) pts.push({date:s.date,value:best});
+  });
+  pts.sort((a,b)=>a.date<b.date?-1:1);
+  if(pts.length<1){ document.getElementById('chE1rm').innerHTML='<p class="muted">Aún no hay datos con peso para este ejercicio.</p>'; document.getElementById('e1rmTxt').textContent=''; return; }
+  document.getElementById('chE1rm').innerHTML=lineChart(pts.map(p=>({label:fmtDM(p.date),value:Math.round(p.value)})),{unit:'kg'});
+  const first=pts[0].value,last=pts[pts.length-1].value,mx=Math.max(...pts.map(p=>p.value));
+  const pct=first>0?Math.round((last/first-1)*100):0;
+  document.getElementById('e1rmTxt').innerHTML='Inicial '+Math.round(first)+' kg · Actual '+Math.round(last)+' kg · Máx '+Math.round(mx)+' kg · <b style="color:'+(pct>=0?'var(--ok)':'var(--danger)')+'">'+(pct>=0?'+':'')+pct+'%</b>'+(bestSet?'<br>Mejor serie: <b>'+bestSet.w+' kg × '+(bestSet.r||'?')+'</b> · Mejor 1RM teórico: <b>'+best1rm+' kg</b>':'');
+}
+function metric(k,v,s){ return '<div class="metric"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>'; }
+function lastNWeeks(n){
+  const arr=[],d=new Date();
+  for(let i=n-1;i>=0;i--){ const dd=new Date(d); dd.setDate(dd.getDate()-i*7);
+    const iso=dd.toISOString().slice(0,10); arr.push({key:isoWeekKey(iso),lbl:fmtDM(iso)}); }
+  const seen=new Set(); return arr.filter(w=>{if(seen.has(w.key))return false;seen.add(w.key);return true;});
+}
+function barChart(data,opts){
+  opts=opts||{}; const W=700,H=180,pad=28,bw=(W-pad*2)/data.length;
+  const max=opts.max||Math.max(1,...data.map(d=>d.value));
+  let bars='',labs='';
+  data.forEach((d,i)=>{ const h=max>0?(d.value/max)*(H-pad*2):0; const x=pad+i*bw, y=H-pad-h;
+    bars+='<rect class="bar" x="'+(x+bw*0.16)+'" y="'+y+'" width="'+(bw*0.68)+'" height="'+Math.max(0,h)+'" rx="3"/>';
+    if(d.value>0) labs+='<text class="lbl" x="'+(x+bw/2)+'" y="'+(y-3)+'" text-anchor="middle">'+d.value+(opts.unit||'')+'</text>';
+    if(i%2===0||data.length<=8) labs+='<text class="lbl" x="'+(x+bw/2)+'" y="'+(H-10)+'" text-anchor="middle">'+d.label+'</text>';
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%"><line class="axis" x1="'+pad+'" y1="'+(H-pad)+'" x2="'+(W-pad)+'" y2="'+(H-pad)+'"/>'+bars+labs+'</svg>';
+}
+function lineChart(data,opts){
+  opts=opts||{}; const W=700,H=200,pad=34;
+  const vals=data.map(d=>d.value); let mn=Math.min(...vals),mx=Math.max(...vals);
+  if(mn===mx){mn-=5;mx+=5;} const rng=mx-mn||1; mn-=rng*0.12; mx+=rng*0.12;
+  const xx=i=>pad+(data.length<=1?(W-pad*2)/2:i*(W-pad*2)/(data.length-1));
+  const yy=v=>H-pad-((v-mn)/(mx-mn))*(H-pad*2);
+  let pl='',dots='',labs='';
+  data.forEach((d,i)=>{ const x=xx(i),y=yy(d.value); pl+=(i?' L':'M')+x+' '+y;
+    dots+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="var(--accent)"/>';
+    if(i===0||i===data.length-1||i%Math.ceil(data.length/7)===0)
+      labs+='<text class="lbl" x="'+x+'" y="'+(H-12)+'" text-anchor="middle">'+d.label+'</text>';
+  });
+  const gy=v=>'<line class="axis" x1="'+pad+'" y1="'+yy(v)+'" x2="'+(W-pad)+'" y2="'+yy(v)+'" opacity=".5"/><text class="lbl" x="6" y="'+(yy(v)+3)+'">'+Math.round(v)+'</text>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%">'+gy(mn+(mx-mn)*0.15)+gy((mn+mx)/2)+gy(mx-(mx-mn)*0.15)+
+    '<path d="'+pl+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>'+dots+labs+'</svg>';
+}
+
+// ---------- RUTINA (editar) ----------
+function renderEdit(){
+  const wrap=document.getElementById('editdays'); wrap.innerHTML='';
+  state.routine.forEach((day,di)=>{
+    const c=document.createElement('div'); c.className='card';
+    c.innerHTML='<div class="exhead"><input value="'+esc(day.name)+'" class="d-name" style="font-weight:700;font-size:16px;border:none;padding:4px 0;width:60%"><span class="muted">'+day.exercises.length+' ej.</span></div>'+
+      '<input value="'+esc(day.focus||'')+'" class="d-focus" placeholder="enfoque" style="font-size:12.5px;border:none;color:var(--muted);padding:0 0 8px">';
+    const list=document.createElement('div');
+    day.exercises.forEach((ex,ei)=>{
+      const r=document.createElement('div'); r.className='editrow';
+      r.innerHTML='<input class="nm" value="'+esc(ex.name)+'" placeholder="ejercicio">'+
+        '<input class="st" value="'+esc(ex.sets)+'" placeholder="ser">'+
+        '<input class="rp" value="'+esc(ex.reps)+'" placeholder="reps">'+
+        '<input class="pe" value="'+esc(ex.rpe)+'" placeholder="RPE">'+
+        '<button class="iconbtn" title="Subir">↑</button>'+
+        '<button class="iconbtn" title="Borrar">✕</button>';
+      const [nm,st,rp,pe]=r.querySelectorAll('input');
+      nm.oninput=()=>{ex.name=nm.value;save();};
+      st.oninput=()=>{ex.sets=st.value;save();};
+      rp.oninput=()=>{ex.reps=rp.value;save();};
+      pe.oninput=()=>{ex.rpe=pe.value;save();};
+      const [up,del]=r.querySelectorAll('button');
+      up.onclick=()=>{ if(ei>0){ day.exercises.splice(ei-1,0,day.exercises.splice(ei,1)[0]); save(); renderEdit(); } };
+      del.onclick=()=>{ if(confirm('¿Borrar "'+ex.name+'"?')){ day.exercises.splice(ei,1); save(); renderEdit(); } };
+      list.appendChild(r);
+    });
+    c.appendChild(list);
+    const add=document.createElement('button'); add.className='btn ghost sm'; add.style.marginTop='6px';
+    add.textContent='+ Añadir ejercicio';
+    add.onclick=()=>{ day.exercises.push({name:'Nuevo ejercicio',sets:3,reps:'8-12',rpe:'9',note:''}); save(); renderEdit(); };
+    c.appendChild(add);
+    c.querySelector('.d-name').oninput=e=>{day.name=e.target.value;save();renderDaybar();};
+    c.querySelector('.d-focus').oninput=e=>{day.focus=e.target.value;save();renderDaybar();};
+    wrap.appendChild(c);
+  });
+}
+function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// ---------- DATOS ----------
+function download(name,content,type){
+  const blob=new Blob([content],{type:type}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+}
+document.getElementById('expCsv').onclick=()=>{
+  const cols=['Fecha','Día','Ejercicio','Series','Repeticiones Objetivo','Peso Utilizado (kg)','Repeticiones Logradas','RPE/Esfuerzo (Inferido)','Fuente'];
+  const lines=[cols.join(';')];
+  [...state.logs].sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{
+    s.entries.forEach(e=>{
+      const row=[s.date, weekdayES(s.date)+' ('+s.day+')', e.name, e.sets??'', e.repsTarget??'',
+        e.weight??'', e.repsDone??'', e.rpe??'', 'app'];
+      lines.push(row.map(v=>{v=String(v); return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(';'));
+    });
+  });
+  download('rutina_export_'+todayISO()+'.csv','\ufeff'+lines.join('\r\n'),'text/csv;charset=utf-8');
+  toast('CSV exportado — 100% compatible con tu Excel');
+};
+document.getElementById('expJson').onclick=()=>{
+  download('rutina_backup_'+todayISO()+'.json',JSON.stringify(state,null,1),'application/json');
+  toast('Copia de seguridad descargada');
+};
+document.getElementById('impFile').onchange=ev=>{
+  const f=ev.target.files[0]; if(!f)return; const rd=new FileReader();
+  rd.onload=()=>{ try{ const d=JSON.parse(rd.result);
+      if(!d.routine||!d.logs) throw 0;
+      if(confirm('Esto reemplazará tus datos actuales por los del archivo. ¿Seguir?')){
+        state=d; save(); curDay=0; renderAll(); toast('Datos restaurados'); }
+    }catch(e){ toast('Archivo no válido'); } };
+  rd.readAsText(f);
+};
+document.getElementById('btnReset').onclick=()=>{
+  if(confirm('Borrará TODO (rutina y sesiones) y volverá a la rutina inicial. ¿Seguro?')){
+    localStorage.removeItem(LS_KEY); state=load(); curDay=0; renderAll(); toast('Datos vaciados');
+  }
+};
+
+// ---------- SINCRONIZACIÓN BIDIRECCIONAL CON GOOGLE SHEETS (Sin PIN) ----------
+function getGsUrl(){ return (state.settings && state.settings.gsUrl) || localStorage.getItem('gymapp.gsUrl') || ''; }
+function setGsUrl(u){
+  u = (u||'').trim();
+  state.settings = state.settings || {};
+  state.settings.gsUrl = u;
+  localStorage.setItem('gymapp.gsUrl', u);
+  save();
+}
+async function syncSessionToSheet(sessionObj, silent){
+  const url = getGsUrl();
+  if(!url) return false;
+  const rows = sessionObj.entries.map(e => ({
+    fecha: sessionObj.date,
+    dia: weekdayES(sessionObj.date) + ' (' + sessionObj.day + ')',
+    ejercicio: e.name,
+    series: e.sets ?? '',
+    repsObjetivo: e.repsTarget ?? '',
+    peso: e.weight ?? '',
+    repsLogradas: e.repsDone ?? '',
+    rpe: e.rpe ?? ''
+  }));
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ rows: rows })
+    });
+    if(!silent) toast('☁️ Sesión subida a Google Sheets');
+    return true;
+  } catch(err) {
+    if(!silent) toast('Guardado en móvil (sin conexión a Drive)');
+    return false;
+  }
+}
+
+function mergeRowsFromSheet(rows){
+  if(!Array.isArray(rows) || !rows.length) return 0;
+  const grouped = new Map();
+  rows.forEach(r => {
+    let rawDate = String(r.fecha || r[0] || '').trim();
+    if(!rawDate || rawDate.toLowerCase() === 'fecha') return;
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawDate)){
+      const [dd,mm,yyyy] = rawDate.split('/');
+      rawDate = yyyy + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+    } else if(/^\d{4}-\d{2}-\d{2}T/.test(rawDate)){
+      rawDate = rawDate.slice(0,10);
+    }
+    const rawDia = String(r.dia || r[1] || '').trim();
+    const m = rawDia.match(/\((.*?)\)/);
+    const dayClean = m ? m[1].trim() : (rawDia || 'Entreno');
+    const exName = String(r.ejercicio || r[2] || '').trim();
+    if(!exName) return;
+    const setsVal = parseInt(r.series ?? r[3], 10) || 3;
+    const repsTargetVal = String(r.repsObjetivo ?? r[4] ?? '');
+    const wRaw = String(r.peso ?? r[5] ?? '').replace(',','.').trim();
+    const rRaw = String(r.repsLogradas ?? r[6] ?? '').replace(',','.').trim();
+    const rpeVal = String(r.rpe ?? r[7] ?? '').trim();
+    const wVal = (wRaw !== '' && !isNaN(+wRaw)) ? +wRaw : null;
+    const rVal = (rRaw !== '' && !isNaN(+rRaw)) ? +rRaw : null;
+
+    const key = rawDate + '|' + dayClean;
+    if(!grouped.has(key)) grouped.set(key, { date: rawDate, day: dayClean, entries: [] });
+    grouped.get(key).entries.push({
+      name: exName, sets: setsVal, repsTarget: repsTargetVal,
+      weight: wVal, repsDone: rVal, rpe: rpeVal
+    });
+  });
+
+  const existingKeys = new Set(state.logs.map(s => s.date + '|' + s.day));
+  let added = 0;
+  grouped.forEach((ses, key) => {
+    if(!existingKeys.has(key)){
+      state.logs.push(ses);
+      existingKeys.add(key);
+      added++;
+    }
+  });
+  state.logs.sort((a,b)=>a.date<b.date?-1:1);
+  save();
+  return added;
+}
+
+(function initCloudUI(){
+  const inp = document.getElementById('gsUrl');
+  const btn = document.getElementById('btnTestSync');
+  const btnPull = document.getElementById('btnPullCloud');
+  const st = document.getElementById('syncStatus');
+  if(!inp || !btn) return;
+  inp.value = getGsUrl();
+  inp.onchange = () => setGsUrl(inp.value);
+
+  btn.onclick = async () => {
+    setGsUrl(inp.value);
+    if(!getGsUrl()){ toast('Pega primero la URL de Apps Script'); return; }
+    st.textContent = 'Subiendo última sesión a Google Sheets...';
+    const lastSes = state.logs[state.logs.length - 1];
+    if(lastSes){
+      const ok = await syncSessionToSheet(lastSes, false);
+      st.textContent = ok ? '✓ Conectado. Última sesión (' + lastSes.date + ') enviada.' : 'Error de red al enviar.';
+    } else {
+      st.textContent = '✓ URL guardada.';
+    }
+  };
+
+  if(btnPull){
+    btnPull.onclick = async () => {
+      setGsUrl(inp.value);
+      const url = getGsUrl();
+      if(!url){ toast('Pega primero la URL de Apps Script'); return; }
+      st.textContent = 'Descargando historial desde Google Sheets...';
+      try {
+        const sep = url.includes('?') ? '&' : '?';
+        const res = await fetch(url + sep + 'action=read');
+        const data = await res.json();
+        const rows = data.rows || data;
+        const added = mergeRowsFromSheet(rows);
+        renderAll();
+        st.textContent = '✓ Sincronizado con éxito. Sesiones nuevas importadas: ' + added + ' (Total: ' + state.logs.length + ').';
+        toast('Descarga completada (+' + added + ' sesiones)');
+      } catch(e) {
+        st.textContent = '⚠️ No se pudo leer la hoja. Asegúrate de tener doGet en Apps Script y crear una Nueva implementación.';
+      }
+    };
+  }
+})();
+
+// ---------- INIT ----------
+function renderAll(){ renderDaybar(); renderExlist(); renderRecent(); if(typeof renderWeek==='function') renderWeek(); }
+document.getElementById('sesdate').value=todayISO();
+renderAll();
+
+if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+(function(){
+  var mode='rest', target=120, elapsed=0, running=false, iv=null, ac=null, startTs=0;
+  var disp=document.getElementById('tdisp'), sheet=document.getElementById('sheet'),
+      bd=document.getElementById('backdrop'), presets=document.getElementById('tpresets'),
+      bStart=document.getElementById('tStart');
+  function fmt(s){ s=Math.max(0,Math.floor(s)); var m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+  function paint(){ var v = mode==='rest' ? (target-elapsed) : elapsed;
+    disp.textContent=fmt(v); disp.classList.toggle('warn', mode==='rest' && v<=5 && running); }
+  function beep(){
+    try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended')ac.resume();
+      [0,200,400].forEach(function(d){ var o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(ac.destination);
+        o.type='sine'; o.frequency.value=880; var t=ac.currentTime+d/1000;
+        g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.4,t+.02);
+        g.gain.exponentialRampToValueAtTime(.0001,t+.2); o.start(t); o.stop(t+.22); }); }catch(e){}
+    if(navigator.vibrate) navigator.vibrate([220,90,220]);
+  }
+  function tick(){ elapsed=(Date.now()-startTs)/1000;
+    if(mode==='rest' && elapsed>=target){ elapsed=target; stop(); beep(); } paint(); }
+  function start(){ if(running){ stop(); return; }
+    if(mode==='rest' && elapsed>=target) elapsed=0;
+    startTs=Date.now()-elapsed*1000; running=true; bStart.textContent='Pausa';
+    try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended')ac.resume(); }catch(e){}
+    iv=setInterval(tick,100); }
+  function stop(){ running=false; bStart.textContent='Iniciar'; if(iv){clearInterval(iv);iv=null;} }
+  function reset(){ stop(); elapsed=0; paint(); }
+  function setMode(m){ mode=m; reset();
+    document.getElementById('mRest').classList.toggle('on',m==='rest');
+    document.getElementById('mUp').classList.toggle('on',m==='up');
+    presets.style.display = m==='rest' ? 'flex':'none'; paint(); }
+  document.getElementById('fab').onclick=function(){ sheet.classList.add('open'); bd.classList.add('open'); };
+  bd.onclick=function(){ sheet.classList.remove('open'); bd.classList.remove('open'); };
+  document.getElementById('mRest').onclick=function(){ setMode('rest'); };
+  document.getElementById('mUp').onclick=function(){ setMode('up'); };
+  presets.querySelectorAll('button').forEach(function(b){ b.onclick=function(){
+    target=+b.dataset.s; presets.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on'); reset(); }; });
+  bStart.onclick=start; document.getElementById('tReset').onclick=reset;
+  setMode('rest'); paint();
+})();
+
+function checkPRs(entries){
+  var prs=[];
+  entries.forEach(function(e){
+    if(e.weight==null||e.repsDone==null) return;
+    var n=baseExName(e.name), maxW=0, bestRepsAtW=0;
+    state.logs.forEach(function(s){ s.entries.forEach(function(x){
+      if(baseExName(x.name)===n && x.weight!=null){ if(x.weight>maxW) maxW=x.weight;
+        if(x.weight===e.weight && (x.repsDone||0)>bestRepsAtW) bestRepsAtW=x.repsDone||0; } }); });
+    if(e.weight>maxW+0.01 || e.repsDone>bestRepsAtW) prs.push(e.name);
+  });
+  return prs;
+}
+function afterSave(prs){
+  if(typeof renderWeek==='function') renderWeek();
+  if(prs && prs.length){ setTimeout(function(){ toast('¡Récord! '+prs.slice(0,3).join(' · ')); if(navigator.vibrate) navigator.vibrate([120,60,120]); }, 1700); }
+}
+function weekCount(key){ return state.logs.filter(function(s){ return isoWeekKey(s.date)===key; }).length; }
+function renderWeek(){
+  var el=document.getElementById('weekBanner'); if(!el) return;
+  var goal=(state.settings&&state.settings.weeklyGoal)||4;
+  function keyOff(n){ var d=new Date(); d.setDate(d.getDate()-n*7); return isoWeekKey(d.toISOString().slice(0,10)); }
+  var cnt=weekCount(keyOff(0)), streak=0, i;
+  if(cnt>=goal) streak++;
+  for(i=1;i<=104;i++){ if(weekCount(keyOff(i))>=goal) streak++; else break; }
+  var done=cnt>=goal, R=27, C=2*Math.PI*R, off=(C*(1-Math.min(1,goal?cnt/goal:0))).toFixed(1);
+  var col=done?'var(--ok)':'var(--accent)';
+  el.innerHTML=
+   '<div class="wk"><div class="wk-ring"><svg viewBox="0 0 72 72">'+
+     '<circle cx="36" cy="36" r="'+R+'" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
+     '<circle cx="36" cy="36" r="'+R+'" fill="none" stroke="'+col+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off+'" transform="rotate(-90 36 36)" style="transition:stroke-dashoffset .5s ease"/>'+
+     '<text x="36" y="36" dominant-baseline="central" text-anchor="middle" class="wk-rt">'+cnt+'</text>'+
+   '</svg></div><div class="wk-info">'+
+     '<div class="wk-k">Esta semana</div>'+
+     '<div class="wk-v">'+cnt+' <span>/ '+goal+' sesiones</span></div>'+
+     '<div class="wk-s">'+(done?'<span class="ok">Objetivo cumplido</span>':(streak>0?'<span class="flame">'+streak+' semanas de racha</span>':'Empieza tu racha esta semana'))+'</div>'+
+   '</div></div>';
+}
+function renderBw(){
+  state.bw=state.bw||[];
+  var c=document.getElementById('bwChart'), l=document.getElementById('bwList'); if(!c) return;
+  if(!state.bw.length){ c.innerHTML='<p class="muted">Aún no has registrado tu peso corporal.</p>'; l.innerHTML=''; return; }
+  c.innerHTML=lineChart(state.bw.map(function(p){ return {label:fmtDM(p.date), value:p.kg}; }),{unit:'kg'});
+  var last=state.bw.slice(-6).reverse();
+  l.innerHTML=last.map(function(p){ var i=state.bw.indexOf(p); return '<div class="sesline"><span>'+fmtDM(p.date)+' · <b>'+p.kg+' kg</b></span><button class="iconbtn" data-i="'+i+'">✕</button></div>'; }).join('');
+  l.querySelectorAll('button').forEach(function(b){ b.onclick=function(){ state.bw.splice(+b.dataset.i,1); save(); renderBw(); }; });
+}
+function renderPlate(){
+  var total=parseFloat(document.getElementById('plW').value), bar=parseFloat(document.getElementById('plBar').value);
+  if(isNaN(bar)) bar=20;
+  var out=document.getElementById('plOut');
+  if(isNaN(total)){ out.textContent='Escribe el peso total.'; return; }
+  var perSide=Math.round((total-bar)/2*100)/100;
+  if(perSide<0){ out.textContent='El peso total es menor que la barra ('+bar+' kg).'; return; }
+  var plates=[25,20,15,10,5,2.5,1.25], rem=perSide, used=[];
+  plates.forEach(function(p){ while(rem>=p-1e-9){ used.push(p); rem=Math.round((rem-p)*100)/100; } });
+  out.innerHTML='Por lado ('+perSide+' kg): '+(used.length?'<b>'+used.join(' + ')+'</b>':'<b>nada</b>')+
+    (rem>0.01?(' <span style="color:var(--danger)">— sobran '+rem+' kg (no exacto)</span>'):'');
+}
+function buildMore(){
+  if(document.getElementById('mas')) return;
+  var sec=document.createElement('section'); sec.id='mas'; sec.className='view';
+  var goal=(state.settings&&state.settings.weeklyGoal)||4;
+  sec.innerHTML=
+   '<div class="card"><h2 class="sec" style="margin-top:0">Objetivo semanal</h2>'+
+   '<div class="row" style="align-items:flex-end"><div class="fld" style="max-width:130px"><label>Sesiones / semana</label>'+
+   '<input type="number" id="goalInp" min="1" max="7" value="'+goal+'"></div>'+
+   '<div class="muted" style="flex:1;min-width:140px">En la pantalla Entrenar verás tu progreso semanal y tu racha.</div></div></div>'+
+   '<div class="card"><h2 class="sec" style="margin-top:0">Peso corporal</h2>'+
+   '<div class="row" style="align-items:flex-end"><div class="fld"><label>Fecha</label><input type="date" id="bwDate"></div>'+
+   '<div class="fld"><label>Peso (kg)</label><input type="number" step="0.1" inputmode="decimal" id="bwKg"></div>'+
+   '<button class="btn sm" id="bwAdd" style="flex:0 0 auto">Añadir</button></div>'+
+   '<div id="bwChart" style="margin-top:12px"></div><div id="bwList" style="margin-top:6px"></div></div>'+
+   '<div class="card"><h2 class="sec" style="margin-top:0">Calculadora de discos</h2>'+
+   '<div class="row" style="align-items:flex-end"><div class="fld"><label>Peso total (kg)</label><input type="number" step="0.5" inputmode="decimal" id="plW" value="100"></div>'+
+   '<div class="fld"><label>Barra (kg)</label><input type="number" step="0.5" id="plBar" value="20"></div>'+
+   '<button class="btn sm" id="plCalc" style="flex:0 0 auto">Calcular</button></div>'+
+   '<div id="plOut" class="muted" style="margin-top:12px"></div></div>';
+  document.querySelector('.wrap').appendChild(sec);
+  document.getElementById('bwDate').value=todayISO();
+  document.getElementById('goalInp').oninput=function(){ var v=parseInt(this.value,10)||4; state.settings.weeklyGoal=Math.min(7,Math.max(1,v)); save(); renderWeek(); };
+  document.getElementById('bwAdd').onclick=function(){ var d=document.getElementById('bwDate').value, k=parseFloat(document.getElementById('bwKg').value);
+    if(!d||isNaN(k)){ toast('Pon fecha y peso'); return; } state.bw=(state.bw||[]).filter(function(x){return x.date!==d;}); state.bw.push({date:d,kg:k}); state.bw.sort(function(a,b){return a.date<b.date?-1:1;}); save(); document.getElementById('bwKg').value=''; renderBw(); toast('Peso guardado'); };
+  document.getElementById('plCalc').onclick=renderPlate;
+  renderBw(); renderPlate();
+}
+(function(){
+  var ent=document.getElementById('entrenar');
+  if(ent && !document.getElementById('weekBanner')){
+    var b=document.createElement('div'); b.id='weekBanner'; b.className='card'; b.style.marginTop='2px';
+    ent.insertBefore(b, ent.firstChild);
+  }
+  buildMore();
+  renderWeek();
+})();
+
+(function(){
+  var btn=document.getElementById('tSavePlank'); if(!btn) return;
+  var mUp=document.getElementById('mUp'), mRest=document.getElementById('mRest');
+  if(mUp) mUp.addEventListener('click',function(){ btn.style.display='block'; });
+  if(mRest) mRest.addEventListener('click',function(){ btn.style.display='none'; });
+  btn.onclick=function(){
+    var t=document.getElementById('tdisp').textContent.split(':');
+    var secs=(parseInt(t[0],10)||0)*60+(parseInt(t[1],10)||0);
+    if(secs<=0){ toast('El cronómetro está a 0'); return; }
+    var di=-1, ei=-1;
+    state.routine.forEach(function(d,i){ d.exercises.forEach(function(e,j){ if(/plancha/i.test(e.name) && di<0){ di=i; ei=j; } }); });
+    if(di<0){ toast('No hay ejercicio de plancha en tu rutina'); return; }
+    curDay=di; renderDaybar(); renderExlist();
+    document.querySelector('nav button[data-v=entrenar]').click();
+    var card=document.querySelectorAll('#exlist .card')[ei];
+    if(card){ var inp=card.querySelector('.i-r'); if(inp){ inp.value=secs; inp.dispatchEvent(new Event('input')); }
+      try{ card.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+      card.style.boxShadow='0 0 0 2px var(--accent)'; setTimeout(function(){ card.style.boxShadow=''; },1600); }
+    document.getElementById('sheet').classList.remove('open');
+    document.getElementById('backdrop').classList.remove('open');
+    toast('Plancha: '+secs+' s anotado · pulsa Guardar sesión');
+  };
+})();
+</script>
+</body>
+</html>
